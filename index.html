@@ -1,0 +1,6259 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <base target="_top">
+  <meta charset="UTF-8">
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no"
+  >
+  <title><?= APP_NAME ?></title>
+
+  <style>
+    :root {
+      --primary: #1f4e79;
+      --primary-dark: #163a5b;
+      --primary-soft: #eaf2f8;
+      --success: #166534;
+      --warning: #a16207;
+      --danger: #b91c1c;
+      --text: #111827;
+      --muted: #6b7280;
+      --line: #e5e7eb;
+      --surface: #ffffff;
+      --page: #f3f4f6;
+      --sidebar: #0f2740;
+      --sidebar-hover: #173a5d;
+      --shadow: 0 8px 24px rgba(15, 39, 64, 0.08);
+      --radius: 14px;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html,
+    body {
+      margin: 0;
+      min-height: 100%;
+      font-family: Arial, sans-serif;
+      color: var(--text);
+      background: var(--page);
+      overflow-x: hidden;
+    }
+
+    button,
+    input,
+    select,
+    textarea {
+      font: inherit;
+    }
+
+    button {
+      cursor: pointer;
+    }
+
+    .app-shell {
+      min-height: 100vh;
+      display: grid;
+      grid-template-columns: 260px minmax(0, 1fr);
+    }
+
+    .sidebar {
+      background: var(--sidebar);
+      color: #fff;
+      min-height: 100vh;
+      position: sticky;
+      top: 0;
+      height: 100vh;
+      overflow-y: auto;
+      padding: 20px 14px;
+    }
+
+    .brand {
+      padding: 8px 10px 22px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+      margin-bottom: 16px;
+    }
+
+    .brand-title {
+      font-size: 18px;
+      font-weight: 800;
+      line-height: 1.3;
+    }
+
+    .brand-version {
+      margin-top: 5px;
+      font-size: 12px;
+      color: rgba(255, 255, 255, 0.65);
+    }
+
+    .nav-list {
+      display: grid;
+      gap: 6px;
+    }
+
+    .nav-button {
+      width: 100%;
+      border: 0;
+      background: transparent;
+      color: rgba(255, 255, 255, 0.82);
+      padding: 11px 12px;
+      border-radius: 9px;
+      text-align: left;
+      font-weight: 700;
+      transition: 0.18s ease;
+    }
+
+    .nav-button:hover,
+    .nav-button.active {
+      background: var(--sidebar-hover);
+      color: #fff;
+    }
+
+    .main {
+      min-width: 0;
+    }
+
+    .topbar {
+      position: sticky;
+      top: 0;
+      z-index: 20;
+      background: rgba(255, 255, 255, 0.96);
+      backdrop-filter: blur(10px);
+      border-bottom: 1px solid var(--line);
+      min-height: 70px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 18px;
+      padding: 12px 22px;
+    }
+
+    .topbar-left {
+      min-width: 0;
+    }
+
+    .page-title {
+      margin: 0;
+      font-size: 22px;
+      color: var(--primary);
+    }
+
+    .page-subtitle {
+      margin-top: 3px;
+      font-size: 12px;
+      color: var(--muted);
+    }
+
+    .user-box {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      text-align: right;
+    }
+
+    .user-name {
+      font-size: 13px;
+      font-weight: 800;
+    }
+
+    .user-meta {
+      font-size: 11px;
+      color: var(--muted);
+    }
+
+    .menu-toggle {
+      display: none;
+      border: 1px solid var(--line);
+      background: #fff;
+      border-radius: 8px;
+      padding: 8px 10px;
+    }
+
+    .content {
+      padding: 22px;
+    }
+
+    .view {
+      display: none;
+    }
+
+    .view.active {
+      display: block;
+    }
+
+    .toolbar {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 16px;
+    }
+
+    .toolbar-group {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .btn {
+      border: 0;
+      border-radius: 8px;
+      padding: 10px 14px;
+      font-weight: 800;
+      transition: 0.18s ease;
+    }
+
+    .btn:hover {
+      transform: translateY(-1px);
+    }
+
+    .btn-primary {
+      background: var(--primary);
+      color: #fff;
+    }
+
+    .btn-secondary {
+      background: #fff;
+      color: var(--text);
+      border: 1px solid var(--line);
+    }
+
+    .btn-success {
+      background: var(--success);
+      color: #fff;
+    }
+
+    .btn-danger {
+      background: var(--danger);
+      color: #fff;
+    }
+
+    .btn-warning {
+      background: var(--warning);
+      color: #fff;
+    }
+
+    .btn-sm {
+      padding: 7px 10px;
+      font-size: 12px;
+    }
+
+    .cards {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 14px;
+      margin-bottom: 18px;
+    }
+
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: 16px;
+      min-width: 0;
+    }
+
+    .metric-label {
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 700;
+    }
+
+    .metric-value {
+      margin-top: 8px;
+      font-size: 26px;
+      font-weight: 900;
+      color: var(--primary);
+      word-break: break-word;
+    }
+
+    .metric-note {
+      margin-top: 6px;
+      font-size: 11px;
+      color: var(--muted);
+    }
+
+    .grid-2 {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 16px;
+    }
+
+    .panel {
+      background: var(--surface);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      overflow: hidden;
+    }
+
+    .panel-header {
+      padding: 14px 16px;
+      border-bottom: 1px solid var(--line);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+    }
+
+    .panel-title {
+      margin: 0;
+      font-size: 16px;
+      color: var(--primary);
+    }
+
+    .panel-body {
+      padding: 16px;
+    }
+
+    .filters {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 10px;
+      margin-bottom: 14px;
+    }
+
+    .form-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 14px;
+    }
+
+    .form-grid-3 {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 14px;
+    }
+
+    .field {
+      min-width: 0;
+    }
+
+    .field.full {
+      grid-column: 1 / -1;
+    }
+
+    .field label {
+      display: block;
+      margin-bottom: 6px;
+      font-size: 12px;
+      font-weight: 800;
+      color: #374151;
+    }
+
+    .input,
+    .select,
+    .textarea {
+      width: 100%;
+      border: 1px solid #cbd5e1;
+      background: #fff;
+      border-radius: 8px;
+      padding: 10px 11px;
+      outline: none;
+      transition: 0.18s ease;
+    }
+
+    .input:focus,
+    .select:focus,
+    .textarea:focus {
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(31, 78, 121, 0.12);
+    }
+
+    .textarea {
+      min-height: 90px;
+      resize: vertical;
+    }
+
+    .table-wrap {
+      overflow: auto;
+      border: 1px solid var(--line);
+      border-radius: 10px;
+    }
+
+    table {
+      width: 100%;
+      min-width: 900px;
+      border-collapse: collapse;
+      background: #fff;
+    }
+
+    th,
+    td {
+      padding: 10px 11px;
+      border-bottom: 1px solid var(--line);
+      text-align: left;
+      font-size: 12px;
+      white-space: nowrap;
+      vertical-align: middle;
+    }
+
+    th {
+      background: #f8fafc;
+      color: #374151;
+      font-weight: 900;
+      position: sticky;
+      top: 0;
+      z-index: 2;
+    }
+
+    tbody tr:hover {
+      background: #f9fafb;
+    }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      border-radius: 999px;
+      padding: 4px 8px;
+      font-size: 10px;
+      font-weight: 900;
+    }
+
+    .badge-success {
+      background: #dcfce7;
+      color: #166534;
+    }
+
+    .badge-warning {
+      background: #fef3c7;
+      color: #92400e;
+    }
+
+    .badge-danger {
+      background: #fee2e2;
+      color: #991b1b;
+    }
+
+    .badge-info {
+      background: #dbeafe;
+      color: #1d4ed8;
+    }
+
+    .empty {
+      text-align: center;
+      color: var(--muted);
+      padding: 28px !important;
+    }
+
+    .item-builder {
+      border: 1px dashed #cbd5e1;
+      border-radius: 10px;
+      padding: 14px;
+      margin-top: 14px;
+    }
+
+    .item-row {
+      display: grid;
+      grid-template-columns: minmax(220px, 2fr) 1fr 1fr auto;
+      gap: 10px;
+      margin-bottom: 10px;
+      align-items: end;
+    }
+
+    .item-row:last-child {
+      margin-bottom: 0;
+    }
+
+    .status-line {
+      padding: 10px 12px;
+      border-radius: 8px;
+      margin-bottom: 14px;
+      display: none;
+      font-size: 13px;
+      font-weight: 700;
+    }
+
+    .status-line.show {
+      display: block;
+    }
+
+    .status-line.success {
+      background: #dcfce7;
+      color: #166534;
+    }
+
+    .status-line.error {
+      background: #fee2e2;
+      color: #991b1b;
+    }
+
+    .loading-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(15, 23, 42, 0.48);
+      z-index: 999;
+      display: none;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .loading-overlay.show {
+      display: flex;
+    }
+
+    .loader-card {
+      background: #fff;
+      border-radius: 12px;
+      padding: 18px 22px;
+      box-shadow: var(--shadow);
+      font-weight: 800;
+      color: var(--primary);
+    }
+
+    .modal-backdrop {
+      position: fixed;
+      inset: 0;
+      background: rgba(15, 23, 42, 0.55);
+      z-index: 500;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 18px;
+    }
+
+    .modal-backdrop.show {
+      display: flex;
+    }
+
+    .modal {
+      width: min(760px, 100%);
+      max-height: 90vh;
+      overflow: auto;
+      background: #fff;
+      border-radius: 14px;
+      box-shadow: 0 18px 60px rgba(0, 0, 0, 0.2);
+    }
+
+    .modal-header {
+      padding: 16px 18px;
+      border-bottom: 1px solid var(--line);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .modal-title {
+      margin: 0;
+      color: var(--primary);
+    }
+
+    .modal-body {
+      padding: 18px;
+    }
+
+    .modal-footer {
+      padding: 14px 18px;
+      border-top: 1px solid var(--line);
+      display: flex;
+      justify-content: flex-end;
+      gap: 8px;
+    }
+
+    .close-btn {
+      border: 0;
+      background: transparent;
+      font-size: 22px;
+      color: var(--muted);
+    }
+
+    .mobile-bottom-nav {
+      display: none;
+    }
+
+    @media (max-width: 1100px) {
+      .cards {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+
+      .filters,
+      .form-grid-3 {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+    }
+
+    @media (max-width: 820px) {
+      .app-shell {
+        grid-template-columns: 1fr;
+      }
+
+      .sidebar {
+        position: fixed;
+        z-index: 100;
+        width: 260px;
+        left: -280px;
+        transition: 0.2s ease;
+      }
+
+      .sidebar.open {
+        left: 0;
+      }
+
+      .menu-toggle {
+        display: inline-flex;
+      }
+
+      .content {
+        padding: 14px;
+        padding-bottom: 80px;
+      }
+
+      .topbar {
+        padding: 10px 14px;
+      }
+
+      .page-title {
+        font-size: 18px;
+      }
+
+      .user-box {
+        display: none;
+      }
+
+      .grid-2,
+      .form-grid,
+      .form-grid-3,
+      .filters {
+        grid-template-columns: 1fr;
+      }
+
+      .item-row {
+        grid-template-columns: 1fr;
+      }
+
+      .mobile-bottom-nav {
+        position: fixed;
+        display: grid;
+        grid-template-columns: repeat(5, 1fr);
+        left: 0;
+        right: 0;
+        bottom: 0;
+        z-index: 90;
+        background: #fff;
+        border-top: 1px solid var(--line);
+        box-shadow: 0 -8px 24px rgba(15, 23, 42, 0.08);
+      }
+
+      .mobile-nav-btn {
+        border: 0;
+        background: #fff;
+        padding: 11px 4px;
+        font-size: 11px;
+        font-weight: 800;
+        color: var(--muted);
+      }
+
+      .mobile-nav-btn.active {
+        color: var(--primary);
+        background: var(--primary-soft);
+      }
+    }
+
+    @media (max-width: 520px) {
+      .cards {
+        grid-template-columns: 1fr;
+      }
+
+      .metric-value {
+        font-size: 24px;
+      }
+
+      .toolbar {
+        align-items: stretch;
+      }
+
+      .toolbar-group {
+        width: 100%;
+      }
+
+      .toolbar-group .btn,
+      .toolbar-group .input,
+      .toolbar-group .select {
+        flex: 1;
+      }
+    }
+
+    /* Separate Free and Customize Inventory dashboards */
+    .inventory-page-head {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 16px;
+      margin-bottom: 18px;
+    }
+
+    .inventory-breadcrumb {
+      margin-top: 6px;
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .inventory-breadcrumb strong {
+      color: var(--primary);
+    }
+
+    .inventory-kpi-grid {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 14px;
+      margin-bottom: 18px;
+    }
+
+    .inventory-kpi {
+      background: #fff;
+      border: 1px solid var(--line);
+      border-radius: 13px;
+      box-shadow: var(--shadow);
+      padding: 16px;
+      min-height: 108px;
+    }
+
+    .inventory-kpi-label {
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 700;
+    }
+
+    .inventory-kpi-value {
+      margin-top: 8px;
+      color: var(--primary);
+      font-size: 27px;
+      line-height: 1.15;
+      font-weight: 900;
+      word-break: break-word;
+    }
+
+    .inventory-kpi-note {
+      margin-top: 7px;
+      color: var(--muted);
+      font-size: 11px;
+    }
+
+    .inventory-panel-tools {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: flex-end;
+      gap: 8px;
+    }
+
+    .inventory-toolbar-search {
+      width: min(340px, 100%);
+    }
+
+    .inventory-dashboard-table {
+      min-width: 850px;
+    }
+
+    .inventory-dashboard-table th,
+    .inventory-dashboard-table td {
+      padding: 13px 14px;
+    }
+
+    .inventory-dashboard-table th:first-child,
+    .inventory-dashboard-table td:first-child {
+      width: 70px;
+      text-align: center;
+    }
+
+    .inventory-dashboard-table .qty-cell,
+    .inventory-dashboard-table .money-cell {
+      text-align: right;
+    }
+
+    .inventory-description-cell {
+      white-space: normal;
+      min-width: 300px;
+      line-height: 1.45;
+    }
+
+    .inventory-project-cell {
+      white-space: normal;
+      min-width: 250px;
+      line-height: 1.45;
+    }
+
+    .inventory-table-footer {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 14px;
+      margin-top: 14px;
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .inventory-pagination {
+      display: flex;
+      gap: 6px;
+    }
+
+    .inventory-page-button {
+      min-width: 34px;
+      height: 34px;
+      border: 1px solid var(--line);
+      border-radius: 7px;
+      background: #fff;
+      color: var(--text);
+      font-weight: 800;
+    }
+
+    .inventory-page-button.active {
+      border-color: var(--primary);
+      background: var(--primary);
+      color: #fff;
+    }
+
+    .inventory-page-button:disabled {
+      opacity: 0.45;
+      cursor: not-allowed;
+    }
+
+    .inventory-refresh-btn {
+      border: 1px solid #3b82f6;
+      background: #fff;
+      color: #1d4ed8;
+    }
+
+    @media (max-width: 1100px) {
+      .inventory-kpi-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+    }
+
+    @media (max-width: 700px) {
+      .inventory-page-head {
+        align-items: stretch;
+        flex-direction: column;
+      }
+
+      .inventory-kpi-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .inventory-panel-tools {
+        width: 100%;
+        justify-content: stretch;
+      }
+
+      .inventory-panel-tools .input,
+      .inventory-panel-tools .select,
+      .inventory-panel-tools .btn {
+        width: 100%;
+      }
+
+      .inventory-table-footer {
+        align-items: flex-start;
+        flex-direction: column;
+      }
+    }
+
+  
+    .outward-item-row {
+      grid-template-columns:
+        minmax(210px, 1.5fr)
+        minmax(220px, 1.7fr)
+        minmax(120px, 0.7fr)
+        minmax(120px, 0.7fr)
+        auto;
+    }
+
+    .outward-description,
+    .outward-available-qty {
+      background: #f8fafc;
+      cursor: not-allowed;
+    }
+
+    @media (max-width: 1100px) {
+      .outward-item-row {
+        grid-template-columns:
+          repeat(2, minmax(0, 1fr));
+      }
+    }
+
+    @media (max-width: 700px) {
+      .outward-item-row {
+        grid-template-columns: 1fr;
+      }
+    }
+
+
+    .inward-item-row {
+      grid-template-columns:
+        minmax(220px, 1.5fr)
+        minmax(240px, 1.8fr)
+        minmax(130px, 0.7fr)
+        auto;
+    }
+
+    .inward-description {
+      background: #f8fafc;
+      cursor: not-allowed;
+    }
+
+    @media (max-width: 1000px) {
+      .inward-item-row {
+        grid-template-columns:
+          repeat(2, minmax(0, 1fr));
+      }
+    }
+
+    @media (max-width: 700px) {
+      .inward-item-row {
+        grid-template-columns: 1fr;
+      }
+    }
+
+</style>
+</head>
+
+<body>
+  <div class="loading-overlay" id="loadingOverlay">
+    <div class="loader-card">Loading...</div>
+  </div>
+
+  <div class="app-shell">
+    <aside class="sidebar" id="sidebar">
+      <div class="brand">
+        <div class="brand-title"><?= APP_NAME ?></div>
+        <div class="brand-version">Version <?= APP_VERSION ?></div>
+      </div>
+
+      <nav class="nav-list" id="navList">
+        <button class="nav-button active" data-view="dashboard">
+          Dashboard
+        </button>
+
+        <button class="nav-button" data-view="inward">
+          Inward Form
+        </button>
+
+        <button class="nav-button" data-view="outward">
+          Outward Form
+        </button>
+
+        <button class="nav-button" data-view="freeInventory">
+          Free Stock Details
+        </button>
+
+        <button class="nav-button" data-view="customizeInventory">
+          Customize Stock Details
+        </button>
+
+        <button class="nav-button" data-view="conversions">
+          Move to Free
+        </button>
+
+        <button class="nav-button" data-view="reports">
+          Report
+        </button>
+      </nav>
+    </aside>
+
+    <main class="main">
+      <header class="topbar">
+        <div style="display:flex;align-items:center;gap:10px;min-width:0;">
+          <button class="menu-toggle" id="menuToggle">☰</button>
+          <div class="topbar-left">
+            <h1 class="page-title" id="pageTitle">Dashboard</h1>
+            <div class="page-subtitle" id="pageSubtitle">Inventory overview</div>
+          </div>
+        </div>
+
+        <div class="user-box">
+          <div>
+            <div class="user-name" id="userName">Loading user...</div>
+            <div class="user-meta" id="userMeta"></div>
+          </div>
+        </div>
+      </header>
+
+      <section class="content">
+        <div class="status-line" id="globalStatus"></div>
+
+                <section class="view active" id="view-dashboard">
+          <div class="toolbar">
+            <div>
+              <strong>Inventory Overview</strong>
+              <div class="page-subtitle">
+                SKU-wise Free and Customize stock details
+              </div>
+            </div>
+
+            <button
+              class="btn btn-secondary"
+              onclick="loadDashboard()"
+            >
+              Refresh
+            </button>
+          </div>
+
+          <div class="cards" id="dashboardCards"></div>
+
+          <div class="cards" id="movementCards"></div>
+
+          <div class="panel">
+            <div class="panel-header">
+              <h3 class="panel-title">
+                SKU-wise Inventory Details
+              </h3>
+
+              <div class="inventory-panel-tools">
+                <input
+                  class="input inventory-toolbar-search"
+                  id="dashboardSkuSearch"
+                  placeholder="Search SKU code, category or description..."
+                  oninput="filterDashboardSkuDetails()"
+                >
+
+                <button
+                  class="btn btn-secondary"
+                  onclick="exportDashboardSkuDetails()"
+                >
+                  Export
+                </button>
+              </div>
+            </div>
+
+            <div class="panel-body">
+              <div class="table-wrap">
+                <table
+                  class="inventory-dashboard-table"
+                  style="min-width:1650px;"
+                >
+                  <thead>
+                    <tr>
+                      <th>S.No</th>
+                      <th>SKU Code</th>
+                      <th>Category</th>
+                      <th>Description</th>
+                      <th class="qty-cell">
+                        Minimum Qty Free
+                      </th>
+                      <th class="qty-cell">
+                        Free Available Qty
+                      </th>
+                      <th class="qty-cell">
+                        Customize Available Qty
+                      </th>
+                      <th class="qty-cell">
+                        Total Available Qty
+                      </th>
+                      <th class="money-cell">
+                        Rate
+                      </th>
+                      <th class="money-cell">
+                        Free Stock Value
+                      </th>
+                      <th class="money-cell">
+                        Customize Stock Value
+                      </th>
+                      <th class="money-cell">
+                        Total Stock Value
+                      </th>
+                    </tr>
+                  </thead>
+
+                  <tbody
+                    id="dashboardSkuDetailsBody"
+                  ></tbody>
+                </table>
+              </div>
+
+              <div
+                class="inventory-table-footer"
+              >
+                <div
+                  id="dashboardSkuRecordText"
+                >
+                  Showing 0 records
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+                <section class="view" id="view-freeInventory">
+          <div class="inventory-page-head">
+            <div>
+              <h2 class="page-title" style="font-size:22px;">Free Stock Details</h2>
+              <div class="inventory-breadcrumb"><strong>Home</strong> / Free Inventory</div>
+            </div>
+            <div class="toolbar-group">
+              <button
+                class="btn btn-primary"
+                onclick="openInwardForType('FREE')"
+              >
+                + Free Inward
+              </button>
+
+              <button
+                class="btn btn-success"
+                onclick="openOutwardForType('FREE')"
+              >
+                − Free Outward
+              </button>
+
+              <button
+                class="btn inventory-refresh-btn"
+                onclick="loadFreeInventory()"
+              >
+                ↻ Refresh
+              </button>
+            </div>
+          </div>
+
+          <div class="inventory-kpi-grid">
+            <div class="inventory-kpi">
+              <div class="inventory-kpi-label">Total SKU Records</div>
+              <div class="inventory-kpi-value" id="freeTotalSkuRecords">0</div>
+              <div class="inventory-kpi-note">Unique SKU in free inventory</div>
+            </div>
+            <div class="inventory-kpi">
+              <div class="inventory-kpi-label">Total Available Qty</div>
+              <div class="inventory-kpi-value" id="freeTotalAvailableQty">0</div>
+              <div class="inventory-kpi-note">Total available quantity</div>
+            </div>
+            <div class="inventory-kpi">
+              <div class="inventory-kpi-label">Total Stock Value</div>
+              <div class="inventory-kpi-value" id="freeTotalStockValue">₹0.00</div>
+              <div class="inventory-kpi-note">Total value of free stock</div>
+            </div>
+            <div class="inventory-kpi">
+              <div class="inventory-kpi-label">Low Stock Records</div>
+              <div class="inventory-kpi-value" id="freeLowStockRecords">0</div>
+              <div class="inventory-kpi-note">Below reorder level</div>
+            </div>
+          </div>
+
+          <div class="panel">
+            <div class="panel-header">
+              <h3 class="panel-title">Free Stock Details</h3>
+              <div class="inventory-panel-tools">
+                <input
+                  class="input inventory-toolbar-search"
+                  id="freeSearch"
+                  placeholder="Search SKU code or description..."
+                  onkeydown="if(event.key==='Enter'){APP.state.freeInventoryPage=1;loadFreeInventory(1);}"
+                >
+                <select class="select" id="freeStatusFilter" onchange="APP.state.freeInventoryPage=1;loadFreeInventory(1)">
+                  <option value="">All Status</option>
+                  <option value="AVAILABLE">AVAILABLE</option>
+                  <option value="OUT OF STOCK">OUT OF STOCK</option>
+                  <option value="INACTIVE">INACTIVE</option>
+                </select>
+                <button class="btn btn-secondary" onclick="APP.state.freeInventoryPage=1;loadFreeInventory(1)">Filter</button>
+                <button class="btn btn-secondary" onclick="exportCurrentReport('FREE_INVENTORY')">Export</button>
+              </div>
+            </div>
+            <div class="panel-body">
+              <div class="table-wrap">
+                <table class="inventory-dashboard-table">
+                  <thead>
+                    <tr>
+                      <th>S.No</th>
+                      <th>SKU Code</th>
+                      <th>Category / Description</th>
+                      <th class="qty-cell">Available Qty</th>
+                      <th class="money-cell">Rate (₹)</th>
+                      <th class="money-cell">Total Cost (₹)</th>
+                    </tr>
+                  </thead>
+                  <tbody id="freeInventoryBody"></tbody>
+                </table>
+              </div>
+              <div class="inventory-table-footer">
+                <div id="freeInventoryRecordText">Showing 0 records</div>
+                <div class="inventory-pagination" id="freeInventoryPagination"></div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+                <section class="view" id="view-customizeInventory">
+          <div class="inventory-page-head">
+            <div>
+              <h2 class="page-title" style="font-size:22px;">Customize Stock Details</h2>
+              <div class="inventory-breadcrumb"><strong>Home</strong> / Customize Inventory</div>
+            </div>
+            <div class="toolbar-group">
+              <button
+                class="btn btn-primary"
+                onclick="openInwardForType('CUSTOMIZE')"
+              >
+                + Customize Inward
+              </button>
+
+              <button
+                class="btn btn-success"
+                onclick="openOutwardForType('CUSTOMIZE')"
+              >
+                − Customize Outward
+              </button>
+
+              <button
+                class="btn inventory-refresh-btn"
+                onclick="loadCustomizeInventory()"
+              >
+                ↻ Refresh
+              </button>
+            </div>
+          </div>
+
+          <div class="inventory-kpi-grid">
+            <div class="inventory-kpi">
+              <div class="inventory-kpi-label">Total Projects</div>
+              <div class="inventory-kpi-value" id="customizeTotalProjects">0</div>
+              <div class="inventory-kpi-note">Projects with stock</div>
+            </div>
+            <div class="inventory-kpi">
+              <div class="inventory-kpi-label">Total SKU Records</div>
+              <div class="inventory-kpi-value" id="customizeTotalSkuRecords">0</div>
+              <div class="inventory-kpi-note">Unique project-wise SKU records</div>
+            </div>
+            <div class="inventory-kpi">
+              <div class="inventory-kpi-label">Total Available Qty</div>
+              <div class="inventory-kpi-value" id="customizeTotalAvailableQty">0</div>
+              <div class="inventory-kpi-note">Total available quantity</div>
+            </div>
+            <div class="inventory-kpi">
+              <div class="inventory-kpi-label">Total Stock Value</div>
+              <div class="inventory-kpi-value" id="customizeTotalStockValue">₹0.00</div>
+              <div class="inventory-kpi-note">Total value of customize stock</div>
+            </div>
+          </div>
+
+          <div class="panel">
+            <div class="panel-header">
+              <h3 class="panel-title">Customize Stock Details</h3>
+              <div class="inventory-panel-tools">
+                <input
+                  class="input inventory-toolbar-search"
+                  id="customizeSearch"
+                  placeholder="Search project, SKU or description..."
+                  onkeydown="if(event.key==='Enter'){APP.state.customizeInventoryPage=1;loadCustomizeInventory(1);}"
+                >
+                <select class="select" id="customizeProjectFilter" onchange="APP.state.customizeInventoryPage=1;loadCustomizeInventory(1)"></select>
+                <button class="btn btn-secondary" onclick="APP.state.customizeInventoryPage=1;loadCustomizeInventory(1)">Filter</button>
+                <button class="btn btn-warning" onclick="refreshEligibility()">Refresh Eligibility</button>
+                <button class="btn btn-secondary" onclick="exportCurrentReport('CUSTOMIZE_INVENTORY')">Export</button>
+              </div>
+            </div>
+            <div class="panel-body">
+              <div class="table-wrap">
+                <table class="inventory-dashboard-table">
+                  <thead>
+                    <tr>
+                      <th>S.No</th>
+                      <th>Project</th>
+                      <th>SKU Code</th>
+                      <th>Category / Description</th>
+                      <th class="qty-cell">Available Qty</th>
+                      <th class="money-cell">Rate (₹)</th>
+                      <th class="money-cell">Total Cost (₹)</th>
+                    </tr>
+                  </thead>
+                  <tbody id="customizeInventoryBody"></tbody>
+                </table>
+              </div>
+              <div class="inventory-table-footer">
+                <div id="customizeInventoryRecordText">Showing 0 records</div>
+                <div class="inventory-pagination" id="customizeInventoryPagination"></div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section class="view" id="view-inward">
+          <div>
+            <div class="panel">
+              <div class="panel-header">
+                <h3 class="panel-title">Create Inward</h3>
+              </div>
+              <div class="panel-body">
+                <form id="inwardForm">
+                  <div class="form-grid">
+                    <div class="field">
+                      <label>Inventory Type</label>
+                      <select class="select" id="inwardType" required>
+                        <option value="FREE">FREE</option>
+                        <option value="CUSTOMIZE">CUSTOMIZE</option>
+                      </select>
+                    </div>
+
+                    <div class="field">
+                      <label>Vendor</label>
+                      <input class="input" id="inwardVendor" required>
+                    </div>
+
+                    <div class="field">
+                      <label>Vendor Invoice No</label>
+                      <input class="input" id="inwardVendorInvoiceNo">
+                    </div>
+
+                    <div class="field" id="inwardProjectField">
+                      <label>Project</label>
+                      <input
+                        class="input project-search-input"
+                        id="inwardProject"
+                        list="inwardProjectList"
+                        placeholder="Search Project Name or Project ID..."
+                        autocomplete="off"
+                      >
+                      <datalist id="inwardProjectList"></datalist>
+                      <div class="user-meta" style="margin-top:5px;">
+                        Project Name first, Project ID after
+                      </div>
+                    </div>
+
+                    <div class="field full">
+                      <label>Remarks</label>
+                      <textarea class="textarea" id="inwardRemarks"></textarea>
+                    </div>
+                  </div>
+
+                  <div class="item-builder">
+                    <div class="toolbar">
+                      <strong>Items</strong>
+                      <button type="button" class="btn btn-secondary btn-sm" onclick="addInwardItem()">Add Item</button>
+                    </div>
+                    <div id="inwardItems"></div>
+                  </div>
+
+                  <div style="margin-top:14px;">
+                    <button type="submit" class="btn btn-primary">Submit Inward</button>
+                  </div>
+                </form>
+              </div>
+            </div>
+
+            
+          </div>
+        </section>
+
+        <section class="view" id="view-outward">
+          <div>
+            <div class="panel">
+              <div class="panel-header">
+                <h3 class="panel-title">Create Outward</h3>
+              </div>
+              <div class="panel-body">
+                <form id="outwardForm">
+                  <div class="form-grid">
+                    <div class="field">
+                      <label>Inventory Type</label>
+                      <select class="select" id="outwardType" required>
+                        <option value="FREE">FREE</option>
+                        <option value="CUSTOMIZE">CUSTOMIZE</option>
+                      </select>
+                    </div>
+
+                    <div class="field" id="outwardSourceProjectField">
+                      <label id="outwardSourceProjectLabel">Stock Project</label>
+                      <input
+                        class="input project-search-input"
+                        id="outwardSourceProject"
+                        list="outwardSourceProjectList"
+                        placeholder="Search project with available stock..."
+                        autocomplete="off"
+                      >
+                      <datalist id="outwardSourceProjectList"></datalist>
+                    </div>
+
+                    <div class="field">
+                      <label id="outwardDestinationProjectLabel">Project Name</label>
+                      <input
+                        class="input project-search-input"
+                        id="outwardDestinationProject"
+                        list="outwardDestinationProjectList"
+                        placeholder="Search Project Name or Project ID..."
+                        autocomplete="off"
+                        required
+                      >
+                      <datalist id="outwardDestinationProjectList"></datalist>
+                      <div class="user-meta" id="outwardProjectRuleText" style="margin-top:5px;">
+                        Project receiving the free inventory
+                      </div>
+                    </div>
+
+                    <div
+                      class="field"
+                      id="approvedHodNameField"
+                      style="display:none;"
+                    >
+                      <label>Approved HOD Name</label>
+
+                      <select
+                        class="select"
+                        id="approvedHodEmail"
+                      >
+                        <option value="">Select HOD</option>
+                      </select>
+
+                      <div
+                        class="user-meta"
+                        id="approvedHodHelp"
+                        style="margin-top:5px;"
+                      >
+                        Select any active HOD for cross-project approval.
+                      </div>
+                    </div>
+
+                    <div class="field">
+                      <label>Reference No</label>
+                      <input class="input" id="outwardReference" required>
+                    </div>
+
+                    <div class="field">
+                      <label>Anusha Invoice No</label>
+                      <input class="input" id="outwardAnushaInvoiceNo">
+                    </div>
+
+                    <div class="field">
+                      <label>Issued To</label>
+                      <input class="input" id="outwardIssuedTo" required>
+                    </div>
+
+                    <div class="field full">
+                      <label>Remarks</label>
+                      <textarea class="textarea" id="outwardRemarks"></textarea>
+                    </div>
+                  </div>
+
+                  <div class="item-builder">
+                    <div class="toolbar">
+                      <strong>Items</strong>
+                      <button type="button" class="btn btn-secondary btn-sm" onclick="addOutwardItem()">Add Item</button>
+                    </div>
+                    <div id="outwardItems"></div>
+                  </div>
+
+                  <div style="margin-top:14px;">
+                    <button type="submit" class="btn btn-primary">Submit Outward</button>
+                  </div>
+                </form>
+              </div>
+            </div>
+
+            
+          </div>
+        </section>
+
+        <section class="view" id="view-approvals">
+          <div class="toolbar">
+            <div class="toolbar-group">
+              <select class="select" id="approvalStatusFilter">
+                <option value="">All Statuses</option>
+                <option value="PENDING">PENDING</option>
+                <option value="APPROVED">APPROVED</option>
+                <option value="REJECTED">REJECTED</option>
+                <option value="EXECUTED">EXECUTED</option>
+              </select>
+              <button class="btn btn-secondary" onclick="loadApprovals()">Filter</button>
+            </div>
+          </div>
+
+          <div class="panel">
+            <div class="panel-header">
+              <h3 class="panel-title">Approval Requests</h3>
+            </div>
+            <div class="panel-body">
+              <div class="table-wrap">
+                <table>
+                  <thead>
+                    <tr>
+                      <th>Request ID</th>
+                      <th>Date</th>
+                      <th>Source</th>
+                      <th>Destination</th>
+                      <th>Qty</th>
+                      <th>Status</th>
+                      <th>Approved HOD Name</th>
+                      <th>Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody id="approvalsBody"></tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section class="view" id="view-conversions">
+          <div class="toolbar">
+            <div class="toolbar-group">
+              <select class="select" id="conversionStatusFilter">
+                <option value="">All Statuses</option>
+                <option value="PENDING">PENDING</option>
+                <option value="APPROVED">APPROVED</option>
+                <option value="REJECTED">REJECTED</option>
+                <option value="EXECUTED">EXECUTED</option>
+              </select>
+              <button class="btn btn-secondary" onclick="loadConversions()">Filter</button>
+            </div>
+            <button class="btn btn-primary" onclick="openConversionModal()">Create Move to Free</button>
+          </div>
+
+          <div class="panel">
+            <div class="panel-header">
+              <h3 class="panel-title">Move to Free Stock Details</h3>
+            </div>
+            <div class="panel-body">
+              <div class="table-wrap">
+                <table>
+                  <thead>
+                    <tr>
+                      <th>Conversion ID</th>
+                      <th>Date</th>
+                      <th>Project</th>
+                      <th>Qty</th>
+                      <th>Amount</th>
+                      <th>Status</th>
+                      <th>Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody id="conversionsBody"></tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section class="view" id="view-reports">
+          <div class="toolbar">
+            <div class="toolbar-group">
+              <select class="select" id="reportType">
+                <option value="FREE_INVENTORY">Free Inventory</option>
+                <option value="CUSTOMIZE_INVENTORY">Customize Inventory</option>
+                <option value="INWARD">Inward</option>
+                <option value="OUTWARD">Outward</option>
+                <option value="APPROVAL">Approval</option>
+                <option value="CONVERSION">Conversion</option>
+                <option value="LOW_STOCK">Low Stock</option>
+                <option value="ELIGIBLE_FOR_FREE">Eligible for Free</option>
+                <option value="PROJECT_WISE_CUSTOMIZE">Project-wise Customize</option>
+              </select>
+
+              <input class="input" id="reportSearch" placeholder="Search">
+              <button class="btn btn-secondary" onclick="loadReport()">Load Report</button>
+            </div>
+
+            <button class="btn btn-primary" onclick="exportSelectedReport()">Export CSV</button>
+          </div>
+
+          <div class="panel">
+            <div class="panel-header">
+              <h3 class="panel-title">Report Results</h3>
+            </div>
+            <div class="panel-body">
+              <div id="reportSummary" style="margin-bottom:12px;"></div>
+              <div class="table-wrap">
+                <table id="reportTable">
+                  <thead id="reportHead"></thead>
+                  <tbody id="reportBody"></tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </section>
+      </section>
+    </main>
+  </div>
+
+  <nav class="mobile-bottom-nav">
+    <button class="mobile-nav-btn active" data-view="dashboard">
+      Dashboard
+    </button>
+
+    <button class="mobile-nav-btn" data-view="inward">
+      Inward
+    </button>
+
+    <button class="mobile-nav-btn" data-view="outward">
+      Outward
+    </button>
+
+    <button class="mobile-nav-btn" data-view="freeInventory">
+      Free
+    </button>
+
+    <button class="mobile-nav-btn" data-view="customizeInventory">
+      Customize
+    </button>
+  </nav>
+
+  <div class="modal-backdrop" id="actionModal">
+    <div class="modal">
+      <div class="modal-header">
+        <h3 class="modal-title" id="actionModalTitle">Action</h3>
+        <button class="close-btn" onclick="closeActionModal()">×</button>
+      </div>
+      <div class="modal-body" id="actionModalBody"></div>
+      <div class="modal-footer" id="actionModalFooter"></div>
+    </div>
+  </div>
+
+  <div class="modal-backdrop" id="conversionModal">
+    <div class="modal">
+      <div class="modal-header">
+        <h3 class="modal-title">Create Move to Free Request</h3>
+        <button class="close-btn" onclick="closeConversionModal()">×</button>
+      </div>
+      <div class="modal-body">
+        <form id="conversionForm">
+          <div class="form-grid">
+            <div class="field">
+              <label>Project</label>
+              <select class="select" id="conversionProject" required></select>
+            </div>
+
+            <div class="field">
+              <label>Approver Email</label>
+              <input class="input" id="conversionApprover" required>
+            </div>
+
+            <div class="field">
+              <label>Reference No</label>
+              <input class="input" id="conversionReference" required>
+            </div>
+
+            <div class="field">
+              <label>Requested By</label>
+              <input class="input" id="conversionRequestedBy" required>
+            </div>
+
+            <div class="field full">
+              <label>Eligible SKU</label>
+              <select class="select" id="conversionSku" required></select>
+            </div>
+
+            <div class="field">
+              <label>Quantity</label>
+              <input class="input" id="conversionQty" type="number" min="0.01" step="0.01" required>
+            </div>
+
+            <div class="field full">
+              <label>Remarks</label>
+              <textarea class="textarea" id="conversionRemarks"></textarea>
+            </div>
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" onclick="closeConversionModal()">Cancel</button>
+        <button class="btn btn-primary" onclick="submitConversionRequest()">Create Request</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const APP = {
+      state: {
+        bootstrap: null,
+        projects: [],
+        skus: [],
+        eligibleCustomize: [],
+        currentView: 'dashboard',
+        freeInventoryPage: 1,
+        customizeInventoryPage: 1,
+        inventoryPageSize: 20,
+        dashboardSkuDetails: [],
+        outwardAvailableSkus: [],
+        availableCustomizeProjects: [],
+        hodUsers: []
+      }
+    };
+
+    document.addEventListener('DOMContentLoaded', function () {
+      bindNavigation();
+      bindForms();
+      bindTypeControls();
+      bindProjectSearchInputs();
+      initializeApp();
+    });
+
+    function api(action, payload) {
+      return new Promise(function (resolve, reject) {
+        google.script.run
+          .withSuccessHandler(resolve)
+          .withFailureHandler(reject)
+          .apiDispatch(action, payload || {});
+      });
+    }
+
+    function setLoading(show) {
+      document
+        .getElementById('loadingOverlay')
+        .classList.toggle('show', Boolean(show));
+    }
+
+    function showStatus(message, type) {
+      const node =
+        document.getElementById('globalStatus');
+
+      node.textContent = message || '';
+      node.className =
+        'status-line show ' +
+        (type === 'error'
+          ? 'error'
+          : 'success');
+
+      window.scrollTo({
+        top: 0,
+        behavior: 'smooth'
+      });
+
+      setTimeout(function () {
+        node.className = 'status-line';
+      }, 5000);
+    }
+
+    async function initializeApp() {
+      setLoading(true);
+
+      try {
+        const result =
+          await api('GET_BOOTSTRAP');
+
+        if (!result || !result.success) {
+          throw new Error(
+            result && result.message
+              ? result.message
+              : 'Unable to initialize app.'
+          );
+        }
+
+        APP.state.bootstrap = result.data;
+        APP.state.projects =
+          result.data.projects || [];
+        APP.state.skus =
+          result.data.skus || [];
+
+        renderUser(result.data.user);
+        populateAllDropdowns();
+        await loadAvailableCustomizeProjects();
+        await loadHodDropdown();
+        addInwardItem();
+        addOutwardItem();
+
+        await loadDashboard();
+
+      } catch (error) {
+        showStatus(
+          error.message ||
+          'Initialization failed.',
+          'error'
+        );
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    function bindNavigation() {
+      document
+        .querySelectorAll(
+          '[data-view]'
+        )
+        .forEach(function (button) {
+          button.addEventListener(
+            'click',
+            function () {
+              switchView(
+                button.dataset.view
+              );
+            }
+          );
+        });
+
+      document
+        .getElementById(
+          'menuToggle'
+        )
+        .addEventListener(
+          'click',
+          function () {
+            document
+              .getElementById('sidebar')
+              .classList.toggle('open');
+          }
+        );
+    }
+
+        function switchView(viewName) {
+      APP.state.currentView = viewName;
+
+      document
+        .querySelectorAll('.view')
+        .forEach(function (view) {
+          view.classList.remove('active');
+        });
+
+      const target =
+        document.getElementById(
+          'view-' + viewName
+        );
+
+      if (target) {
+        target.classList.add('active');
+      }
+
+      document
+        .querySelectorAll(
+          '[data-view]'
+        )
+        .forEach(function (button) {
+          button.classList.toggle(
+            'active',
+            button.dataset.view ===
+              viewName
+          );
+        });
+
+      const titles = {
+        dashboard: [
+          'Dashboard',
+          'Inventory overview'
+        ],
+
+        inward: [
+          'Inward Form',
+          'Receive Free or Customize stock'
+        ],
+
+        outward: [
+          'Outward Form',
+          'Issue available Free or Customize stock'
+        ],
+
+        freeInventory: [
+          'Free Stock Details',
+          'Check Free stock using search and status filters'
+        ],
+
+        customizeInventory: [
+          'Customize Stock Details',
+          'Check project-wise stock using filters'
+        ],
+
+        conversions: [
+          'Move to Free',
+          'Eligible Customize stock and conversion details'
+        ],
+
+        reports: [
+          'Report',
+          'Inventory and movement reports'
+        ]
+      };
+
+      const title =
+        titles[viewName] ||
+        [viewName, ''];
+
+      document.getElementById(
+        'pageTitle'
+      ).textContent =
+        title[0];
+
+      document.getElementById(
+        'pageSubtitle'
+      ).textContent =
+        title[1];
+
+      document
+        .getElementById('sidebar')
+        .classList.remove('open');
+
+      loadViewData(viewName);
+    }
+
+    async function loadViewData(viewName) {
+      if (viewName === 'dashboard') {
+        await loadDashboard();
+      } else if (
+        viewName === 'freeInventory'
+      ) {
+        await loadFreeInventory();
+      } else if (
+        viewName ===
+        'customizeInventory'
+      ) {
+        await loadCustomizeInventory();
+      } else if (viewName === 'inward') {
+        await loadInwardTransactions();
+      } else if (viewName === 'outward') {
+        await loadOutwardTransactions();
+      } else if (
+        viewName === 'approvals'
+      ) {
+        await loadApprovals();
+      } else if (
+        viewName === 'conversions'
+      ) {
+        await loadConversions();
+      }
+    }
+
+
+    function openInwardForType(
+      inventoryType
+    ) {
+      switchView('inward');
+
+      const typeSelect =
+        document.getElementById(
+          'inwardType'
+        );
+
+      typeSelect.value =
+        inventoryType === 'CUSTOMIZE'
+          ? 'CUSTOMIZE'
+          : 'FREE';
+
+      const projectInput =
+        document.getElementById(
+          'inwardProject'
+        );
+
+      projectInput.value = '';
+      projectInput.dataset.projectId = '';
+      projectInput.setCustomValidity('');
+
+      updateInwardProjectVisibility();
+
+      setTimeout(function () {
+        document
+          .getElementById(
+            'inwardForm'
+          )
+          .scrollIntoView({
+            behavior: 'smooth',
+            block: 'start'
+          });
+      }, 50);
+    }
+
+
+    function openOutwardForType(
+      inventoryType
+    ) {
+      switchView('outward');
+
+      const typeSelect =
+        document.getElementById(
+          'outwardType'
+        );
+
+      typeSelect.value =
+        inventoryType === 'CUSTOMIZE'
+          ? 'CUSTOMIZE'
+          : 'FREE';
+
+      [
+        'outwardSourceProject',
+        'outwardDestinationProject'
+      ].forEach(function (inputId) {
+        const input =
+          document.getElementById(
+            inputId
+          );
+
+        input.value = '';
+        input.dataset.projectId = '';
+        input.setCustomValidity('');
+      });
+
+      updateOutwardProjectVisibility();
+      loadAvailableOutwardSkus();
+
+      setTimeout(function () {
+        document
+          .getElementById(
+            'outwardForm'
+          )
+          .scrollIntoView({
+            behavior: 'smooth',
+            block: 'start'
+          });
+      }, 50);
+    }
+
+    function renderUser(user) {
+      document.getElementById(
+        'userName'
+      ).textContent =
+        user.employeeName ||
+        user.email ||
+        'User';
+
+      document.getElementById(
+        'userMeta'
+      ).textContent = [
+        user.role,
+        user.email
+      ]
+        .filter(Boolean)
+        .join(' · ');
+    }
+
+
+    function getProjectSearchLabel(project) {
+      return [
+        project.projectName || '',
+        project.projectId || ''
+      ]
+        .filter(Boolean)
+        .join(' - ');
+    }
+
+
+    function getSortedProjects() {
+      return (APP.state.projects || [])
+        .slice()
+        .sort(function (first, second) {
+          return String(
+            first.projectName || ''
+          ).localeCompare(
+            String(
+              second.projectName || ''
+            ),
+            undefined,
+            {
+              sensitivity: 'base'
+            }
+          );
+        });
+    }
+
+
+    function createProjectDatalistOptions() {
+      return getSortedProjects()
+        .map(function (project) {
+          return (
+            '<option value="' +
+            escapeHtml(
+              getProjectSearchLabel(project)
+            ) +
+            '"></option>'
+          );
+        })
+        .join('');
+    }
+
+
+    
+    function getSortedAvailableCustomizeProjects() {
+      return (
+        APP.state
+          .availableCustomizeProjects ||
+        []
+      )
+        .slice()
+        .sort(function (
+          first,
+          second
+        ) {
+          return String(
+            first.projectName ||
+            ''
+          ).localeCompare(
+            String(
+              second.projectName ||
+              ''
+            ),
+            undefined,
+            {
+              sensitivity: 'base'
+            }
+          );
+        });
+    }
+
+
+    function createAvailableCustomizeProjectOptions() {
+      return getSortedAvailableCustomizeProjects()
+        .map(function (project) {
+          return (
+            '<option value="' +
+            escapeHtml(
+              getProjectSearchLabel(
+                project
+              )
+            ) +
+            '"></option>'
+          );
+        })
+        .join('');
+    }
+
+
+    function populateAvailableCustomizeProjectList() {
+      const list =
+        document.getElementById(
+          'outwardSourceProjectList'
+        );
+
+      if (list) {
+        list.innerHTML =
+          createAvailableCustomizeProjectOptions();
+      }
+    }
+
+
+    async function loadAvailableCustomizeProjects() {
+      try {
+        const result =
+          await api(
+            'GET_AVAILABLE_CUSTOMIZE_PROJECTS'
+          );
+
+        assertSuccess(result);
+
+        APP.state
+          .availableCustomizeProjects =
+            Array.isArray(
+              result.data
+            )
+              ? result.data
+              : [];
+
+        populateAvailableCustomizeProjectList();
+
+      } catch (error) {
+        APP.state
+          .availableCustomizeProjects =
+            [];
+
+        populateAvailableCustomizeProjectList();
+
+        showStatus(
+          error.message ||
+          'Unable to load projects with available Customize stock.',
+          'error'
+        );
+      }
+    }
+
+
+    function resolveAvailableCustomizeProject(
+      input,
+      clearInvalid
+    ) {
+      const typedValue =
+        String(
+          input.value ||
+          ''
+        )
+          .trim()
+          .toLowerCase();
+
+      if (!typedValue) {
+        input.dataset.projectId =
+          '';
+
+        input.setCustomValidity(
+          input.required
+            ? 'Select a project that has available Customize stock.'
+            : ''
+        );
+
+        return null;
+      }
+
+      const project =
+        getSortedAvailableCustomizeProjects()
+          .find(function (item) {
+            const projectId =
+              String(
+                item.projectId ||
+                ''
+              )
+                .trim()
+                .toLowerCase();
+
+            const projectName =
+              String(
+                item.projectName ||
+                ''
+              )
+                .trim()
+                .toLowerCase();
+
+            const label =
+              getProjectSearchLabel(
+                item
+              )
+                .trim()
+                .toLowerCase();
+
+            return (
+              typedValue ===
+                projectId ||
+              typedValue ===
+                projectName ||
+              typedValue ===
+                label
+            );
+          });
+
+      if (!project) {
+        input.dataset.projectId =
+          '';
+
+        input.setCustomValidity(
+          'Select a source project that currently has available Customize stock.'
+        );
+
+        if (
+          clearInvalid === true
+        ) {
+          input.value = '';
+        }
+
+        return null;
+      }
+
+      input.dataset.projectId =
+        project.projectId ||
+        '';
+
+      input.value =
+        getProjectSearchLabel(
+          project
+        );
+
+      input.setCustomValidity('');
+
+      return project;
+    }
+
+
+    function getSelectedSourceProjectId(
+      required
+    ) {
+      const input =
+        document.getElementById(
+          'outwardSourceProject'
+        );
+
+      const project =
+        resolveAvailableCustomizeProject(
+          input,
+          false
+        );
+
+      if (
+        required &&
+        !project
+      ) {
+        input.reportValidity();
+
+        throw new Error(
+          'Select a source project that has available Customize stock.'
+        );
+      }
+
+      return project
+        ? project.projectId
+        : '';
+    }
+
+    function populateProjectSearchInputs() {
+      const allProjectOptions =
+        createProjectDatalistOptions();
+
+      [
+        'inwardProjectList',
+        'outwardDestinationProjectList'
+      ].forEach(function (listId) {
+        const list =
+          document.getElementById(
+            listId
+          );
+
+        if (list) {
+          list.innerHTML =
+            allProjectOptions;
+        }
+      });
+
+      populateAvailableCustomizeProjectList();
+    }
+
+
+    function resolveProjectSearchInput(
+      input,
+      clearInvalid
+    ) {
+      const typedValue =
+        String(
+          input.value || ''
+        )
+          .trim()
+          .toLowerCase();
+
+      if (!typedValue) {
+        input.dataset.projectId = '';
+        input.setCustomValidity(
+          input.required
+            ? 'Please select a project from the list.'
+            : ''
+        );
+        return null;
+      }
+
+      const project =
+        getSortedProjects().find(
+          function (item) {
+            const projectId =
+              String(
+                item.projectId || ''
+              )
+                .trim()
+                .toLowerCase();
+
+            const projectName =
+              String(
+                item.projectName || ''
+              )
+                .trim()
+                .toLowerCase();
+
+            const label =
+              getProjectSearchLabel(
+                item
+              )
+                .trim()
+                .toLowerCase();
+
+            return (
+              typedValue === projectId ||
+              typedValue === projectName ||
+              typedValue === label
+            );
+          }
+        );
+
+      if (!project) {
+        input.dataset.projectId = '';
+
+        input.setCustomValidity(
+          'Invalid project. Select a project from the dropdown list.'
+        );
+
+        if (clearInvalid === true) {
+          input.value = '';
+        }
+
+        return null;
+      }
+
+      input.dataset.projectId =
+        project.projectId || '';
+
+      input.value =
+        getProjectSearchLabel(
+          project
+        );
+
+      input.setCustomValidity('');
+
+      return project;
+    }
+
+
+    function getSelectedProjectId(
+      inputId,
+      required
+    ) {
+      const input =
+        document.getElementById(
+          inputId
+        );
+
+      if (!input) {
+        return '';
+      }
+
+      const project =
+        resolveProjectSearchInput(
+          input,
+          false
+        );
+
+      if (
+        required &&
+        !project
+      ) {
+        input.reportValidity();
+
+        throw new Error(
+          'Please select a valid project from the dropdown.'
+        );
+      }
+
+      return project
+        ? project.projectId
+        : '';
+    }
+
+
+    function bindProjectSearchInputs() {
+      [
+        'inwardProject',
+        'outwardDestinationProject'
+      ].forEach(function (inputId) {
+        const input =
+          document.getElementById(
+            inputId
+          );
+
+        if (!input) {
+          return;
+        }
+
+        input.addEventListener(
+          'input',
+          function () {
+            input.dataset.projectId =
+              '';
+
+            input.setCustomValidity(
+              input.required
+                ? 'Select project from the dropdown list.'
+                : ''
+            );
+          }
+        );
+
+        input.addEventListener(
+          'change',
+          function () {
+            resolveProjectSearchInput(
+              input,
+              true
+            );
+          }
+        );
+
+        input.addEventListener(
+          'blur',
+          function () {
+            resolveProjectSearchInput(
+              input,
+              true
+            );
+          }
+        );
+      });
+
+      const sourceInput =
+        document.getElementById(
+          'outwardSourceProject'
+        );
+
+      sourceInput.addEventListener(
+        'input',
+        function () {
+          sourceInput.dataset.projectId =
+            '';
+
+          sourceInput.setCustomValidity(
+            'Select a project that has available Customize stock.'
+          );
+        }
+      );
+
+      sourceInput.addEventListener(
+        'change',
+        function () {
+          const project =
+            resolveAvailableCustomizeProject(
+              sourceInput,
+              true
+            );
+
+          if (project) {
+            loadAvailableOutwardSkus();
+          }
+
+          updateCrossProjectHodField();
+        }
+      );
+
+      sourceInput.addEventListener(
+        'blur',
+        function () {
+          resolveAvailableCustomizeProject(
+            sourceInput,
+            true
+          );
+
+          updateCrossProjectHodField();
+        }
+      );
+
+      const destinationInput =
+        document.getElementById(
+          'outwardDestinationProject'
+        );
+
+      destinationInput.addEventListener(
+        'change',
+        updateCrossProjectHodField
+      );
+
+      destinationInput.addEventListener(
+        'blur',
+        updateCrossProjectHodField
+      );
+    }
+
+        function populateAllDropdowns() {
+      const projectTargets = [
+        'customizeProjectFilter',
+        'conversionProject'
+      ];
+
+      const sortedProjects =
+        getSortedProjects();
+
+      projectTargets.forEach(
+        function (id) {
+          const select =
+            document.getElementById(id);
+
+          if (!select) {
+            return;
+          }
+
+          const includeBlank =
+            id ===
+            'customizeProjectFilter';
+
+          select.innerHTML =
+            includeBlank
+              ? '<option value="">All Projects</option>'
+              : '<option value="">Select Project</option>';
+
+          sortedProjects.forEach(
+            function (project) {
+              const option =
+                document.createElement(
+                  'option'
+                );
+
+              option.value =
+                project.projectId;
+
+              option.textContent =
+                getProjectSearchLabel(
+                  project
+                );
+
+              select.appendChild(
+                option
+              );
+            }
+          );
+        }
+      );
+
+      populateProjectSearchInputs();
+    }
+
+    
+    function getSkuSearchLabel(sku) {
+      return [
+        sku.skuCode || '',
+        sku.skuName || '',
+        sku.categoryName || ''
+      ]
+        .filter(Boolean)
+        .join(' - ');
+    }
+
+
+
+    function createOutwardSkuDatalistOptions() {
+      return (
+        APP.state.outwardAvailableSkus ||
+        []
+      )
+        .map(function (sku) {
+          return (
+            '<option value="' +
+            escapeHtml(
+              getSkuSearchLabel(sku)
+            ) +
+            '"></option>'
+          );
+        })
+        .join('');
+    }
+
+
+    function resolveOutwardSkuFromSearchInput(
+      input,
+      clearInvalid
+    ) {
+      const typedValue =
+        String(
+          input.value || ''
+        ).trim()
+        .toLowerCase();
+
+      const sku =
+        (
+          APP.state.outwardAvailableSkus ||
+          []
+        ).find(function (item) {
+          return [
+            item.skuId,
+            item.skuCode,
+            item.skuName,
+            getSkuSearchLabel(item)
+          ]
+            .filter(Boolean)
+            .some(function (value) {
+              return (
+                String(value)
+                  .trim()
+                  .toLowerCase() ===
+                typedValue
+              );
+            });
+        });
+
+      if (!sku) {
+        input.dataset.skuId = '';
+
+        input.setCustomValidity(
+          'Select an available SKU from the dropdown list only.'
+        );
+
+        if (clearInvalid === true) {
+          input.value = '';
+        }
+
+        return null;
+      }
+
+      input.dataset.skuId =
+        sku.skuId || '';
+
+      input.value =
+        getSkuSearchLabel(sku);
+
+      input.setCustomValidity('');
+
+      return sku;
+    }
+
+
+    async function loadAvailableOutwardSkus() {
+      const inventoryType =
+        document.getElementById(
+          'outwardType'
+        ).value;
+
+      const sourceProjectId =
+        inventoryType ===
+          'CUSTOMIZE'
+          ? getSelectedSourceProjectId(
+              true
+            )
+          : '';
+
+      if (
+        inventoryType ===
+          'CUSTOMIZE' &&
+        !sourceProjectId
+      ) {
+        APP.state.outwardAvailableSkus =
+          [];
+
+        refreshOutwardSkuLists();
+
+        return;
+      }
+
+      try {
+        const result =
+          await api(
+            'GET_AVAILABLE_OUTWARD_SKUS',
+            {
+              inventoryType:
+                inventoryType,
+
+              sourceProjectId:
+                sourceProjectId
+            }
+          );
+
+        assertSuccess(result);
+
+        APP.state.outwardAvailableSkus =
+          Array.isArray(result.data)
+            ? result.data
+            : [];
+
+        refreshOutwardSkuLists();
+
+      } catch (error) {
+        APP.state.outwardAvailableSkus =
+          [];
+
+        refreshOutwardSkuLists();
+
+        showStatus(
+          error.message ||
+          'Unable to load available outward SKUs.',
+          'error'
+        );
+      }
+    }
+
+
+    function refreshOutwardSkuLists() {
+      document
+        .querySelectorAll(
+          '#outwardItems .item-row'
+        )
+        .forEach(function (row) {
+          const datalist =
+            row.querySelector('datalist');
+
+          const input =
+            row.querySelector(
+              '.outward-sku-search'
+            );
+
+          const rateInput =
+            row.querySelector(
+              '.outward-rate'
+            );
+
+          const stockInfo =
+            row.querySelector(
+              '.outward-stock-info'
+            );
+
+          if (datalist) {
+            datalist.innerHTML =
+              createOutwardSkuDatalistOptions();
+          }
+
+          if (input) {
+            input.value = '';
+            input.dataset.skuId = '';
+            input.setCustomValidity('');
+          }
+
+          if (rateInput) {
+            rateInput.value = '';
+          }
+
+          if (stockInfo) {
+            stockInfo.textContent =
+              'Select available SKU from dropdown';
+          }
+        });
+    }
+
+    function createSkuDatalistOptions() {
+      return APP.state.skus
+        .map(function (sku) {
+          return (
+            '<option value="' +
+            escapeHtml(
+              getSkuSearchLabel(sku)
+            ) +
+            '"></option>'
+          );
+        })
+        .join('');
+    }
+
+
+        function resolveSkuFromSearchInput(
+      input,
+      clearInvalid
+    ) {
+      const typedValue =
+        String(
+          input.value || ''
+        ).trim();
+
+      const normalizedTyped =
+        typedValue.toLowerCase();
+
+      if (!typedValue) {
+        input.dataset.skuId = '';
+        input.setCustomValidity(
+          'Please select SKU from the dropdown.'
+        );
+        return null;
+      }
+
+      const sku =
+        APP.state.skus.find(
+          function (item) {
+            const skuId =
+              String(
+                item.skuId ||
+                item.value ||
+                ''
+              ).trim();
+
+            const skuCode =
+              String(
+                item.skuCode || ''
+              ).trim();
+
+            const skuName =
+              String(
+                item.skuName || ''
+              ).trim();
+
+            const fullLabel =
+              getSkuSearchLabel(item);
+
+            return (
+              skuId.toLowerCase() ===
+                normalizedTyped ||
+              skuCode.toLowerCase() ===
+                normalizedTyped ||
+              skuName.toLowerCase() ===
+                normalizedTyped ||
+              fullLabel.toLowerCase() ===
+                normalizedTyped
+            );
+          }
+        );
+
+      if (!sku) {
+        input.dataset.skuId = '';
+
+        input.setCustomValidity(
+          'Invalid SKU. Please select SKU from the dropdown list only.'
+        );
+
+        if (clearInvalid === true) {
+          input.value = '';
+        }
+
+        return null;
+      }
+
+      input.dataset.skuId =
+        sku.skuId ||
+        sku.value ||
+        '';
+
+      input.value =
+        getSkuSearchLabel(sku);
+
+      input.setCustomValidity('');
+
+      return sku;
+    }
+
+    function createSkuOptions() {
+      return (
+        '<option value="" data-rate="">Select SKU</option>' +
+        APP.state.skus
+          .map(function (sku) {
+            return (
+              '<option value="' +
+              escapeHtml(
+                sku.skuId || sku.value || ''
+              ) +
+              '" data-rate="' +
+              escapeHtml(
+                Number(
+                  sku.standardRate || 0
+                ).toFixed(2)
+              ) +
+              '" data-uom="' +
+              escapeHtml(
+                sku.uom || ''
+              ) +
+              '">' +
+              escapeHtml(
+                sku.label ||
+                (
+                  (sku.skuCode || '') +
+                  ' - ' +
+                  (sku.skuName || '')
+                )
+              ) +
+              '</option>'
+            );
+          })
+          .join('')
+      );
+    }
+
+    function bindForms() {
+      document
+        .getElementById('inwardForm')
+        .addEventListener(
+          'submit',
+          submitInward
+        );
+
+      document
+        .getElementById('outwardForm')
+        .addEventListener(
+          'submit',
+          submitOutward
+        );
+    }
+
+    function bindTypeControls() {
+      document
+        .getElementById('inwardType')
+        .addEventListener(
+          'change',
+          updateInwardProjectVisibility
+        );
+
+      document
+        .getElementById('outwardType')
+        .addEventListener(
+          'change',
+          async function () {
+            updateOutwardProjectVisibility();
+
+            if (
+              document.getElementById(
+                'outwardType'
+              ).value ===
+                'CUSTOMIZE'
+            ) {
+              await loadAvailableCustomizeProjects();
+            }
+
+            loadAvailableOutwardSkus();
+          }
+        );
+
+      document
+        .getElementById(
+          'outwardSourceProject'
+        )
+        .addEventListener(
+          'change',
+          loadAvailableOutwardSkus
+        );
+
+      updateInwardProjectVisibility();
+      updateOutwardProjectVisibility();
+    }
+
+    function updateInwardProjectVisibility() {
+      const customize =
+        document.getElementById(
+          'inwardType'
+        ).value === 'CUSTOMIZE';
+
+      document.getElementById(
+        'inwardProjectField'
+      ).style.display =
+        customize ? 'block' : 'none';
+
+      document.getElementById(
+        'inwardProject'
+      ).required = customize;
+    }
+
+    
+
+    async function loadHodDropdown() {
+      try {
+        const result =
+          await api(
+            'GET_HOD_DROPDOWN'
+          );
+
+        assertSuccess(result);
+
+        APP.state.hodUsers =
+          Array.isArray(
+            result.data
+          )
+            ? result.data
+            : [];
+
+        populateHodDropdown();
+
+      } catch (error) {
+        APP.state.hodUsers = [];
+        populateHodDropdown();
+
+        showStatus(
+          error.message ||
+          'Unable to load HOD list.',
+          'error'
+        );
+      }
+    }
+
+
+    function populateHodDropdown() {
+      const select =
+        document.getElementById(
+          'approvedHodEmail'
+        );
+
+      if (!select) {
+        return;
+      }
+
+      const currentValue =
+        select.value;
+
+      select.innerHTML =
+        '<option value="">Select HOD</option>';
+
+      (APP.state.hodUsers || [])
+        .forEach(function (hod) {
+          const option =
+            document.createElement(
+              'option'
+            );
+
+          option.value =
+            hod.hodEmail || '';
+
+          option.textContent =
+            hod.label ||
+            hod.hodName ||
+            hod.hodEmail ||
+            '';
+
+          select.appendChild(
+            option
+          );
+        });
+
+      if (
+        currentValue &&
+        (APP.state.hodUsers || [])
+          .some(function (hod) {
+            return hod.hodEmail ===
+              currentValue;
+          })
+      ) {
+        select.value =
+          currentValue;
+      }
+    }
+
+
+    function getSelectedHod() {
+      const select =
+        document.getElementById(
+          'approvedHodEmail'
+        );
+
+      const email =
+        String(
+          select.value || ''
+        )
+          .trim()
+          .toLowerCase();
+
+      const hod =
+        (APP.state.hodUsers || [])
+          .find(function (item) {
+            return String(
+              item.hodEmail || ''
+            )
+              .trim()
+              .toLowerCase() ===
+              email;
+          });
+
+      if (!hod) {
+        select.setCustomValidity(
+          'Please select an HOD for approval.'
+        );
+
+        select.reportValidity();
+
+        throw new Error(
+          'Please select an HOD for approval.'
+        );
+      }
+
+      select.setCustomValidity('');
+
+      return hod;
+    }
+
+    function getAvailableCustomizeProjectById(
+      projectId
+    ) {
+      const target =
+        String(
+          projectId || ''
+        ).trim().toLowerCase();
+
+      return (
+        APP.state
+          .availableCustomizeProjects ||
+        []
+      ).find(function (project) {
+        return String(
+          project.projectId || ''
+        ).trim().toLowerCase() ===
+          target;
+      }) || null;
+    }
+
+
+        function updateCrossProjectHodField() {
+      const inventoryType =
+        document.getElementById(
+          'outwardType'
+        ).value;
+
+      const sourceInput =
+        document.getElementById(
+          'outwardSourceProject'
+        );
+
+      const destinationInput =
+        document.getElementById(
+          'outwardDestinationProject'
+        );
+
+      const field =
+        document.getElementById(
+          'approvedHodNameField'
+        );
+
+      const select =
+        document.getElementById(
+          'approvedHodEmail'
+        );
+
+      const help =
+        document.getElementById(
+          'approvedHodHelp'
+        );
+
+      const sourceProject =
+        resolveAvailableCustomizeProject(
+          sourceInput,
+          false
+        );
+
+      const destinationProject =
+        resolveProjectSearchInput(
+          destinationInput,
+          false
+        );
+
+      const crossProject =
+        inventoryType ===
+          'CUSTOMIZE' &&
+        sourceProject &&
+        destinationProject &&
+        sourceProject.projectId !==
+          destinationProject.projectId;
+
+      field.style.display =
+        crossProject
+          ? 'block'
+          : 'none';
+
+      select.required =
+        Boolean(
+          crossProject
+        );
+
+      if (!crossProject) {
+        select.value = '';
+        select.setCustomValidity('');
+        return;
+      }
+
+      help.textContent =
+        'HOD approval is required. Select any active HOD from the dropdown.';
+    }
+
+    function updateOutwardProjectVisibility() {
+      const inventoryType =
+        document.getElementById(
+          'outwardType'
+        ).value;
+
+      const customize =
+        inventoryType ===
+        'CUSTOMIZE';
+
+      const sourceField =
+        document.getElementById(
+          'outwardSourceProjectField'
+        );
+
+      const sourceProject =
+        document.getElementById(
+          'outwardSourceProject'
+        );
+
+      const sourceLabel =
+        document.getElementById(
+          'outwardSourceProjectLabel'
+        );
+
+      const destinationLabel =
+        document.getElementById(
+          'outwardDestinationProjectLabel'
+        );
+
+      const ruleText =
+        document.getElementById(
+          'outwardProjectRuleText'
+        );
+
+      sourceField.style.display =
+        customize
+          ? 'block'
+          : 'none';
+
+      sourceProject.required =
+        customize;
+
+      if (!customize) {
+        sourceProject.value = '';
+        sourceProject.dataset.projectId = '';
+        sourceProject.setCustomValidity('');
+
+        sourceLabel.textContent =
+          'Stock Project';
+
+        destinationLabel.textContent =
+          'Project Name';
+
+        ruleText.textContent =
+          'Project Name is required for Free Inventory Outward.';
+      } else {
+        sourceLabel.textContent =
+          'Stock Project';
+
+        destinationLabel.textContent =
+          'Destination Project';
+
+        ruleText.textContent =
+          'Stock Project shows only projects with available Customize stock. Destination Project shows all active projects.';
+      }
+
+      refreshOutwardItemRates();
+      updateCrossProjectHodField();
+    }
+
+                    function addInwardItem() {
+      const container =
+        document.getElementById(
+          'inwardItems'
+        );
+
+      const row =
+        document.createElement(
+          'div'
+        );
+
+      row.className =
+        'item-row inward-item-row';
+
+      const listId =
+        'inwardSkuList_' +
+        Date.now() +
+        '_' +
+        Math.floor(
+          Math.random() *
+          100000
+        );
+
+      row.innerHTML =
+        '<div class="field">' +
+          '<label>SKU Code</label>' +
+          '<input class="input inward-sku-search" list="' +
+            listId +
+          '" placeholder="Search SKU code, name or category..." autocomplete="off" required>' +
+          '<datalist id="' +
+            listId +
+          '">' +
+            createSkuDatalistOptions() +
+          '</datalist>' +
+          '<div class="user-meta inward-sku-info" style="margin-top:5px;">Select SKU from dropdown</div>' +
+        '</div>' +
+
+        '<div class="field">' +
+          '<label>Description</label>' +
+          '<input class="input inward-description" type="text" readonly>' +
+        '</div>' +
+
+        '<div class="field">' +
+          '<label>In Qty</label>' +
+          '<input class="input inward-qty" type="number" min="0.001" step="0.001" required>' +
+        '</div>' +
+
+        '<input class="inward-rate" type="hidden" value="0">' +
+
+        '<button type="button" class="btn btn-danger btn-sm" onclick="removeItemRow(this)">Remove</button>';
+
+      const skuInput =
+        row.querySelector(
+          '.inward-sku-search'
+        );
+
+      const skuInfo =
+        row.querySelector(
+          '.inward-sku-info'
+        );
+
+      const descriptionInput =
+        row.querySelector(
+          '.inward-description'
+        );
+
+      const rateInput =
+        row.querySelector(
+          '.inward-rate'
+        );
+
+      function applySelectedSku() {
+        const sku =
+          resolveSkuFromSearchInput(
+            skuInput,
+            true
+          );
+
+        if (!sku) {
+          descriptionInput.value = '';
+          rateInput.value = '0';
+
+          skuInfo.textContent =
+            'Select a valid SKU from the dropdown.';
+
+          return;
+        }
+
+        const rate =
+          Number(
+            sku.standardRate ||
+            0
+          );
+
+        descriptionInput.value =
+          sku.skuName ||
+          sku.description ||
+          '';
+
+        rateInput.value =
+          rate.toFixed(2);
+
+        skuInfo.textContent = [
+          sku.skuCode,
+          sku.categoryName
+        ]
+          .filter(Boolean)
+          .join(' | ');
+      }
+
+      skuInput.addEventListener(
+        'input',
+        function () {
+          skuInput.dataset.skuId =
+            '';
+
+          skuInput.setCustomValidity(
+            'Please select SKU from the dropdown list.'
+          );
+
+          descriptionInput.value =
+            '';
+
+          rateInput.value =
+            '0';
+        }
+      );
+
+      skuInput.addEventListener(
+        'change',
+        applySelectedSku
+      );
+
+      skuInput.addEventListener(
+        'blur',
+        applySelectedSku
+      );
+
+      container.appendChild(row);
+    }
+
+                    function addOutwardItem() {
+      const container =
+        document.getElementById(
+          'outwardItems'
+        );
+
+      const row =
+        document.createElement('div');
+
+      row.className =
+        'item-row outward-item-row';
+
+      const listId =
+        'outwardSkuList_' +
+        Date.now() +
+        '_' +
+        Math.floor(
+          Math.random() * 100000
+        );
+
+      row.innerHTML =
+        '<div class="field">' +
+          '<label>SKU Code</label>' +
+          '<input class="input outward-sku-search" list="' +
+            listId +
+          '" placeholder="Search available SKU..." autocomplete="off" required>' +
+          '<datalist id="' +
+            listId +
+          '">' +
+            createOutwardSkuDatalistOptions() +
+          '</datalist>' +
+          '<div class="user-meta outward-sku-info" style="margin-top:5px;">Only available stock is shown</div>' +
+        '</div>' +
+
+        '<div class="field">' +
+          '<label>Description</label>' +
+          '<input class="input outward-description" type="text" readonly>' +
+        '</div>' +
+
+        '<div class="field">' +
+          '<label>Available Qty</label>' +
+          '<input class="input outward-available-qty" type="number" readonly>' +
+        '</div>' +
+
+        '<div class="field">' +
+          '<label>Out Qty</label>' +
+          '<input class="input outward-qty" type="number" min="0.001" step="0.001" required>' +
+          '<div class="user-meta outward-stock-info" style="margin-top:5px;">Select available SKU</div>' +
+        '</div>' +
+
+        '<input class="outward-rate" type="hidden" value="0">' +
+
+        '<button type="button" class="btn btn-danger btn-sm" onclick="removeItemRow(this)">Remove</button>';
+
+      const skuInput =
+        row.querySelector(
+          '.outward-sku-search'
+        );
+
+      function applySelectedSku() {
+        const sku =
+          resolveOutwardSkuFromSearchInput(
+            skuInput,
+            true
+          );
+
+        row.querySelector(
+          '.outward-sku-info'
+        ).textContent =
+          sku
+            ? [
+                sku.skuCode,
+                sku.categoryName
+              ]
+                .filter(Boolean)
+                .join(' | ')
+            : 'Select available SKU from dropdown';
+
+        loadOutwardSkuInfo(row);
+      }
+
+      skuInput.addEventListener(
+        'input',
+        function () {
+          skuInput.dataset.skuId = '';
+
+          skuInput.setCustomValidity(
+            'Select an available SKU from the dropdown list.'
+          );
+
+          row.querySelector(
+            '.outward-description'
+          ).value = '';
+
+          row.querySelector(
+            '.outward-available-qty'
+          ).value = '';
+
+          row.querySelector(
+            '.outward-rate'
+          ).value = '0';
+
+          row.querySelector(
+            '.outward-stock-info'
+          ).textContent =
+            'Select available SKU from dropdown';
+        }
+      );
+
+      skuInput.addEventListener(
+        'change',
+        applySelectedSku
+      );
+
+      skuInput.addEventListener(
+        'blur',
+        applySelectedSku
+      );
+
+      const quantityInput =
+        row.querySelector(
+          '.outward-qty'
+        );
+
+      quantityInput.addEventListener(
+        'input',
+        function () {
+          validateOutwardQuantity(
+            quantityInput
+          );
+        }
+      );
+
+      quantityInput.addEventListener(
+        'blur',
+        function () {
+          validateOutwardQuantity(
+            quantityInput
+          );
+
+          quantityInput.reportValidity();
+        }
+      );
+
+      container.appendChild(row);
+    }
+
+
+                    async function loadOutwardSkuInfo(
+      row
+    ) {
+      const skuInput =
+        row.querySelector(
+          '.outward-sku-search'
+        );
+
+      const sku =
+        resolveOutwardSkuFromSearchInput(
+          skuInput,
+          false
+        );
+
+      const rateInput =
+        row.querySelector(
+          '.outward-rate'
+        );
+
+      const descriptionInput =
+        row.querySelector(
+          '.outward-description'
+        );
+
+      const availableQtyInput =
+        row.querySelector(
+          '.outward-available-qty'
+        );
+
+      const quantityInput =
+        row.querySelector(
+          '.outward-qty'
+        );
+
+      const stockInfo =
+        row.querySelector(
+          '.outward-stock-info'
+        );
+
+      rateInput.value = '0';
+      descriptionInput.value = '';
+      availableQtyInput.value = '';
+      quantityInput.value = '';
+      quantityInput.removeAttribute(
+        'max'
+      );
+      quantityInput.dataset.availableQty =
+        '';
+
+      if (!sku) {
+        stockInfo.textContent =
+          'Select an available SKU.';
+        return;
+      }
+
+      const availableQty =
+        Number(
+          sku.availableQty || 0
+        );
+
+      const rate =
+        Number(
+          sku.rate || 0
+        );
+
+      descriptionInput.value =
+        sku.skuName || '';
+
+      availableQtyInput.value =
+        numberText(
+          availableQty
+        );
+
+      /*
+       * Rate is not displayed in the web form.
+       * Hidden rate is retained only for the existing
+       * backend request structure.
+       */
+      rateInput.value =
+        rate.toFixed(2);
+
+      quantityInput.max =
+        String(availableQty);
+
+      quantityInput.dataset.availableQty =
+        String(availableQty);
+
+      stockInfo.textContent =
+        'Maximum Out Qty: ' +
+        numberText(
+          availableQty
+        );
+
+      validateOutwardQuantity(
+        quantityInput
+      );
+    }
+
+
+        function validateOutwardQuantity(
+      quantityInput
+    ) {
+      const requestedQty =
+        Number(
+          quantityInput.value ||
+          0
+        );
+
+      const availableQty =
+        Number(
+          quantityInput.dataset
+            .availableQty ||
+          0
+        );
+
+      if (
+        requestedQty <= 0 &&
+        quantityInput.value !== ''
+      ) {
+        quantityInput.setCustomValidity(
+          'Out Qty must be greater than zero.'
+        );
+
+        return false;
+      }
+
+      if (
+        requestedQty > availableQty
+      ) {
+        quantityInput.setCustomValidity(
+          'Out Qty cannot be greater than Available Qty (' +
+          availableQty +
+          ').'
+        );
+
+        return false;
+      }
+
+      quantityInput.setCustomValidity('');
+
+      return true;
+    }
+
+
+            function refreshOutwardItemRates() {
+      loadAvailableOutwardSkus();
+    }
+
+    function removeItemRow(button) {
+      const row =
+        button.closest('.item-row');
+
+      const parent = row.parentElement;
+
+      if (
+        parent.children.length <= 1
+      ) {
+        showStatus(
+          'At least one item is required.',
+          'error'
+        );
+        return;
+      }
+
+      row.remove();
+    }
+
+    async function submitInward(event) {
+      event.preventDefault();
+      setLoading(true);
+
+      try {
+        const items =
+          Array.from(
+            document.querySelectorAll(
+              '#inwardItems .item-row'
+            )
+          ).map(function (row) {
+            return {
+              skuId:
+                (
+                  function () {
+                    const input =
+                      row.querySelector(
+                        '.inward-sku-search'
+                      );
+
+                    const sku =
+                      resolveSkuFromSearchInput(
+                        input,
+                        false
+                      );
+
+                    if (!sku) {
+                      input.reportValidity();
+
+                      throw new Error(
+                        'Please select a valid SKU from the dropdown.'
+                      );
+                    }
+
+                    return input.dataset.skuId;
+                  }
+                )(),
+
+              quantity:
+                Number(
+                  row.querySelector(
+                    '.inward-qty'
+                  ).value
+                ),
+
+              rate:
+                Number(
+                  row.querySelector(
+                    '.inward-rate'
+                  ).value
+                )
+            };
+          });
+
+        const payload = {
+          inventoryType:
+            document.getElementById(
+              'inwardType'
+            ).value,
+
+          vendor:
+            document.getElementById(
+              'inwardVendor'
+            ).value.trim(),
+
+          vendorInvoiceNo:
+            document.getElementById(
+              'inwardVendorInvoiceNo'
+            ).value.trim(),
+
+          remarks:
+            document.getElementById(
+              'inwardRemarks'
+            ).value.trim(),
+
+          projectId:
+            getSelectedProjectId(
+              'inwardProject',
+              document.getElementById(
+                'inwardType'
+              ).value ===
+                'CUSTOMIZE'
+            ),
+
+          items:
+            items
+        };
+
+        const result =
+          await api(
+            'CREATE_INWARD',
+            payload
+          );
+
+        assertSuccess(result);
+
+        showStatus(
+          result.message,
+          'success'
+        );
+
+        event.target.reset();
+
+        document.getElementById(
+          'inwardItems'
+        ).innerHTML = '';
+
+        addInwardItem();
+        updateInwardProjectVisibility();
+
+        await loadInwardTransactions();
+        await loadDashboard();
+
+      } catch (error) {
+        showStatus(
+          error.message,
+          'error'
+        );
+      } finally {
+        setLoading(false);
+      }
+    }
+
+        async function submitOutward(event) {
+      event.preventDefault();
+      setLoading(true);
+
+      try {
+        const items =
+          Array.from(
+            document.querySelectorAll(
+              '#outwardItems .item-row'
+            )
+          ).map(function (row) {
+            return {
+              skuId:
+                (
+                  function () {
+                    const input =
+                      row.querySelector(
+                        '.outward-sku-search'
+                      );
+
+                    const sku =
+                      resolveOutwardSkuFromSearchInput(
+                        input,
+                        false
+                      );
+
+                    if (!sku) {
+                      input.reportValidity();
+
+                      throw new Error(
+                        'Please select a valid SKU from the dropdown.'
+                      );
+                    }
+
+                    return input.dataset.skuId;
+                  }
+                )(),
+
+              quantity:
+                (
+                  function () {
+                    const quantityInput =
+                      row.querySelector(
+                        '.outward-qty'
+                      );
+
+                    if (
+                      !validateOutwardQuantity(
+                        quantityInput
+                      )
+                    ) {
+                      quantityInput
+                        .reportValidity();
+
+                      throw new Error(
+                        quantityInput
+                          .validationMessage
+                      );
+                    }
+
+                    return Number(
+                      quantityInput.value
+                    );
+                  }
+                )(),
+
+              rate:
+                Number(
+                  row.querySelector(
+                    '.outward-rate'
+                  ).value
+                )
+            };
+          });
+
+        const inventoryType =
+          document.getElementById(
+            'outwardType'
+          ).value;
+
+        const sourceProjectId =
+          inventoryType ===
+            'CUSTOMIZE'
+            ? getSelectedSourceProjectId(
+                true
+              )
+            : '';
+
+        const destinationProjectId =
+          getSelectedProjectId(
+            'outwardDestinationProject',
+            true
+          );
+
+        const referenceNo =
+          document.getElementById(
+            'outwardReference'
+          ).value.trim();
+
+        const remarks =
+          document.getElementById(
+            'outwardRemarks'
+          ).value.trim();
+
+        const crossProject =
+          inventoryType ===
+            'CUSTOMIZE' &&
+          sourceProjectId &&
+          destinationProjectId &&
+          sourceProjectId !==
+            destinationProjectId;
+
+        let result;
+
+        if (crossProject) {
+          const selectedHod =
+            getSelectedHod();
+
+          const user =
+            APP.state.bootstrap &&
+            APP.state.bootstrap.user
+              ? APP.state.bootstrap.user
+              : {};
+
+          result =
+            await api(
+              'CREATE_APPROVAL_REQUEST',
+              {
+                sourceProjectId:
+                  sourceProjectId,
+
+                destinationProjectId:
+                  destinationProjectId,
+
+                referenceNo:
+                  referenceNo,
+
+                requestedBy:
+                  user.employeeName ||
+                  user.email ||
+                  document.getElementById(
+                    'outwardIssuedTo'
+                  ).value.trim() ||
+                  'User',
+
+                approverEmail:
+                  selectedHod.hodEmail,
+
+                remarks:
+                  remarks,
+
+                items:
+                  items
+              }
+            );
+
+        } else {
+          result =
+            await api(
+              'CREATE_OUTWARD',
+              {
+                inventoryType:
+                  inventoryType,
+
+                sourceProjectId:
+                  sourceProjectId,
+
+                destinationProjectId:
+                  destinationProjectId,
+
+                referenceNo:
+                  referenceNo,
+
+                anushaInvoiceNo:
+                  document.getElementById(
+                    'outwardAnushaInvoiceNo'
+                  ).value.trim(),
+
+                issuedTo:
+                  document.getElementById(
+                    'outwardIssuedTo'
+                  ).value.trim(),
+
+                remarks:
+                  remarks,
+
+                items:
+                  items
+              }
+            );
+        }
+
+        assertSuccess(result);
+
+        showStatus(
+          crossProject
+            ? (
+                'Approval request created successfully for ' +
+                getSelectedHod().hodName +
+                '.'
+              )
+            : result.message,
+          'success'
+        );
+
+        event.target.reset();
+
+        document.getElementById(
+          'outwardItems'
+        ).innerHTML = '';
+
+        addOutwardItem();
+        updateOutwardProjectVisibility();
+
+        await loadDashboard();
+
+      } catch (error) {
+        showStatus(
+          error.message,
+          'error'
+        );
+      } finally {
+        setLoading(false);
+      }
+    }
+
+        async function loadDashboard() {
+      setLoading(true);
+
+      try {
+        const result =
+          await api('GET_DASHBOARD');
+
+        assertSuccess(result);
+
+        const dashboardData =
+          result.data &&
+          result.data.data
+            ? result.data.data
+            : result.data;
+
+        renderDashboard(
+          dashboardData || {}
+        );
+
+      } catch (error) {
+        showStatus(
+          error.message ||
+          'Unable to load dashboard.',
+          'error'
+        );
+      } finally {
+        setLoading(false);
+      }
+    }
+
+        function renderDashboard(data) {
+      const inventory =
+        data.inventory || {};
+
+      const free =
+        inventory.freeInventory || {};
+
+      const customize =
+        inventory.customizeInventory || {};
+
+      const combined =
+        inventory.combined || {};
+
+      const movement =
+        data.movementTotals || {};
+
+      const cards = [
+        [
+          'Free Available Qty',
+          numberText(
+            free.totalAvailableQty || 0
+          ),
+          currencyText(
+            free.totalStockValue || 0
+          )
+        ],
+        [
+          'Customize Available Qty',
+          numberText(
+            customize.totalAvailableQty || 0
+          ),
+          currencyText(
+            customize.totalStockValue || 0
+          )
+        ],
+        [
+          'Total Available Qty',
+          numberText(
+            combined.totalAvailableQty || 0
+          ),
+          currencyText(
+            combined.totalStockValue || 0
+          )
+        ],
+        [
+          'Low Stock Records',
+          numberText(
+            data.lowStock
+              ? data.lowStock.totalRecords
+              : 0
+          ),
+          'Free stock at or below minimum'
+        ]
+      ];
+
+      document.getElementById(
+        'dashboardCards'
+      ).innerHTML =
+        cards.map(
+          function (card) {
+            return (
+              '<div class="card">' +
+                '<div class="metric-label">' +
+                  escapeHtml(card[0]) +
+                '</div>' +
+                '<div class="metric-value">' +
+                  escapeHtml(card[1]) +
+                '</div>' +
+                '<div class="metric-note">' +
+                  escapeHtml(card[2]) +
+                '</div>' +
+              '</div>'
+            );
+          }
+        ).join('');
+
+      const movementCards = [
+        [
+          'Free Total Inward',
+          numberText(
+            movement.freeInwardQty || 0
+          ),
+          currencyText(
+            movement.freeInwardAmount || 0
+          )
+        ],
+        [
+          'Free Total Outward',
+          numberText(
+            movement.freeOutwardQty || 0
+          ),
+          currencyText(
+            movement.freeOutwardAmount || 0
+          )
+        ],
+        [
+          'Customize Total Inward',
+          numberText(
+            movement.customizeInwardQty || 0
+          ),
+          currencyText(
+            movement.customizeInwardAmount || 0
+          )
+        ],
+        [
+          'Customize Total Outward',
+          numberText(
+            movement.customizeOutwardQty || 0
+          ),
+          currencyText(
+            movement.customizeOutwardAmount || 0
+          )
+        ]
+      ];
+
+      document.getElementById(
+        'movementCards'
+      ).innerHTML =
+        movementCards.map(
+          function (card) {
+            return (
+              '<div class="card">' +
+                '<div class="metric-label">' +
+                  escapeHtml(card[0]) +
+                '</div>' +
+                '<div class="metric-value">' +
+                  escapeHtml(card[1]) +
+                '</div>' +
+                '<div class="metric-note">' +
+                  escapeHtml(card[2]) +
+                '</div>' +
+              '</div>'
+            );
+          }
+        ).join('');
+
+      APP.state.dashboardSkuDetails =
+        data.skuDetails || [];
+
+      renderDashboardSkuDetails(
+        APP.state.dashboardSkuDetails
+      );
+    }
+
+
+    function renderDashboardSkuDetails(
+      records
+    ) {
+      const body =
+        document.getElementById(
+          'dashboardSkuDetailsBody'
+        );
+
+      const recordText =
+        document.getElementById(
+          'dashboardSkuRecordText'
+        );
+
+      if (!records.length) {
+        body.innerHTML =
+          '<tr>' +
+            '<td colspan="12" class="empty">' +
+              'No SKU inventory data found. Run testFastInventoryDashboard and check the execution log.' +
+            '</td>' +
+          '</tr>';
+
+        recordText.textContent =
+          'Showing 0 records';
+
+        return;
+      }
+
+      body.innerHTML =
+        records.map(
+          function (record, index) {
+            return (
+              '<tr>' +
+                '<td>' +
+                  numberText(index + 1) +
+                '</td>' +
+
+                '<td>' +
+                  escapeHtml(
+                    record.skuCode || '-'
+                  ) +
+                '</td>' +
+
+                '<td>' +
+                  escapeHtml(
+                    record.category || '-'
+                  ) +
+                '</td>' +
+
+                '<td class="inventory-description-cell">' +
+                  escapeHtml(
+                    record.skuName || '-'
+                  ) +
+                '</td>' +
+
+                '<td class="qty-cell">' +
+                  numberText(
+                    record.minimumQtyFree || 0
+                  ) +
+                '</td>' +
+
+                '<td class="qty-cell">' +
+                  numberText(
+                    record.freeAvailableQty || 0
+                  ) +
+                '</td>' +
+
+                '<td class="qty-cell">' +
+                  numberText(
+                    record.customizeAvailableQty || 0
+                  ) +
+                '</td>' +
+
+                '<td class="qty-cell">' +
+                  numberText(
+                    record.totalAvailableQty || 0
+                  ) +
+                '</td>' +
+
+                '<td class="money-cell">' +
+                  currencyText(
+                    record.rate || 0
+                  ) +
+                '</td>' +
+
+                '<td class="money-cell">' +
+                  currencyText(
+                    record.freeStockValue || 0
+                  ) +
+                '</td>' +
+
+                '<td class="money-cell">' +
+                  currencyText(
+                    record.customizeStockValue || 0
+                  ) +
+                '</td>' +
+
+                '<td class="money-cell">' +
+                  currencyText(
+                    record.totalStockValue || 0
+                  ) +
+                '</td>' +
+              '</tr>'
+            );
+          }
+        ).join('');
+
+      recordText.textContent =
+        'Showing ' +
+        records.length +
+        ' records';
+    }
+
+
+    function filterDashboardSkuDetails() {
+      const search =
+        document.getElementById(
+          'dashboardSkuSearch'
+        ).value
+          .trim()
+          .toLowerCase();
+
+      const records =
+        APP.state.dashboardSkuDetails ||
+        [];
+
+      if (!search) {
+        renderDashboardSkuDetails(
+          records
+        );
+
+        return;
+      }
+
+      renderDashboardSkuDetails(
+        records.filter(
+          function (record) {
+            return [
+              record.skuCode,
+              record.category,
+              record.skuName
+            ]
+              .filter(Boolean)
+              .join(' ')
+              .toLowerCase()
+              .indexOf(search) !== -1;
+          }
+        )
+      );
+    }
+
+
+    function exportDashboardSkuDetails() {
+      const records =
+        APP.state.dashboardSkuDetails ||
+        [];
+
+      if (!records.length) {
+        showStatus(
+          'No dashboard records to export.',
+          'error'
+        );
+
+        return;
+      }
+
+      const rows = [
+        [
+          'S.No',
+          'SKU Code',
+          'Category',
+          'Description',
+          'Minimum Qty Free',
+          'Free Available Qty',
+          'Customize Available Qty',
+          'Total Available Qty',
+          'Rate',
+          'Free Stock Value',
+          'Customize Stock Value',
+          'Total Stock Value'
+        ]
+      ];
+
+      records.forEach(
+        function (record, index) {
+          rows.push([
+            index + 1,
+            record.skuCode || '',
+            record.category || '',
+            record.skuName || '',
+            record.minimumQtyFree || 0,
+            record.freeAvailableQty || 0,
+            record.customizeAvailableQty || 0,
+            record.totalAvailableQty || 0,
+            record.rate || 0,
+            record.freeStockValue || 0,
+            record.customizeStockValue || 0,
+            record.totalStockValue || 0
+          ]);
+        }
+      );
+
+      const csv =
+        rows.map(
+          function (row) {
+            return row.map(
+              function (cell) {
+                return (
+                  '"' +
+                  String(cell)
+                    .replace(
+                      /"/g,
+                      '""'
+                    ) +
+                  '"'
+                );
+              }
+            ).join(',');
+          }
+        ).join('\n');
+
+      const blob =
+        new Blob(
+          [csv],
+          {
+            type:
+              'text/csv;charset=utf-8;'
+          }
+        );
+
+      const link =
+        document.createElement('a');
+
+      link.href =
+        URL.createObjectURL(blob);
+
+      link.download =
+        'Inventory_Dashboard_SKU_Details.csv';
+
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+
+      URL.revokeObjectURL(
+        link.href
+      );
+    }
+
+    function renderRecentTransactions(records) {
+      const body =
+        document.getElementById(
+          'recentTransactionsBody'
+        );
+
+      if (!records.length) {
+        body.innerHTML =
+          emptyRow(8);
+        return;
+      }
+
+      body.innerHTML =
+        records.map(function (record) {
+          return (
+            '<tr>' +
+              '<td>' +
+                escapeHtml(record.type) +
+              '</td>' +
+              '<td>' +
+                escapeHtml(record.referenceId) +
+              '</td>' +
+              '<td>' +
+                escapeHtml(record.date) +
+              '</td>' +
+              '<td>' +
+                escapeHtml(record.project) +
+              '</td>' +
+              '<td>' +
+                escapeHtml(record.skuCode) +
+              '</td>' +
+              '<td>' +
+                numberText(record.quantity) +
+              '</td>' +
+              '<td>' +
+                statusBadge(record.status) +
+              '</td>' +
+            '</tr>'
+          );
+        }).join('');
+    }
+
+    function renderProjectWise(records) {
+      const body =
+        document.getElementById(
+          'projectWiseBody'
+        );
+
+      if (!records.length) {
+        body.innerHTML =
+          emptyRow(5);
+        return;
+      }
+
+      body.innerHTML =
+        records.map(function (record) {
+          return (
+            '<tr>' +
+              '<td>' +
+                escapeHtml(record.projectName) +
+              '</td>' +
+              '<td>' +
+                numberText(record.skuRecords) +
+              '</td>' +
+              '<td>' +
+                numberText(record.availableQty) +
+              '</td>' +
+              '<td>' +
+                currencyText(record.stockValue) +
+              '</td>' +
+              '<td>' +
+                numberText(record.eligibleRecords) +
+              '</td>' +
+            '</tr>'
+          );
+        }).join('');
+    }
+
+        async function loadFreeInventory(pageNumber) {
+      const selectedPage =
+        Number(pageNumber) ||
+        APP.state.freeInventoryPage ||
+        1;
+
+      APP.state.freeInventoryPage =
+        selectedPage;
+
+      setLoading(true);
+
+      try {
+        const responses =
+          await Promise.all([
+            api(
+              'GET_FREE_INVENTORY',
+              {
+                search:
+                  document
+                    .getElementById(
+                      'freeSearch'
+                    ).value.trim(),
+
+                status:
+                  document
+                    .getElementById(
+                      'freeStatusFilter'
+                    ).value,
+
+                pageNumber:
+                  selectedPage,
+
+                pageSize:
+                  APP.state.inventoryPageSize
+              }
+            ),
+
+            api('GET_DASHBOARD')
+          ]);
+
+        const result = responses[0];
+        const dashboardResult = responses[1];
+
+        assertSuccess(result);
+
+        const rows =
+          result.data.records.records || [];
+
+        const pagination =
+          result.data.records.pagination || {
+            pageNumber: 1,
+            pageSize:
+              APP.state.inventoryPageSize,
+            totalRecords: rows.length,
+            totalPages: 1
+          };
+
+        const summary =
+          result.data.summary || {};
+
+        const dashboard =
+          dashboardResult &&
+          dashboardResult.success
+            ? dashboardResult.data
+            : {};
+
+        const lowStockCount =
+          dashboard.lowStock
+            ? dashboard.lowStock.totalRecords
+            : 0;
+
+        document.getElementById(
+          'freeTotalSkuRecords'
+        ).textContent =
+          numberText(
+            summary.totalRecords || 0
+          );
+
+        document.getElementById(
+          'freeTotalAvailableQty'
+        ).textContent =
+          numberText(
+            summary.totalAvailableQty || 0
+          );
+
+        document.getElementById(
+          'freeTotalStockValue'
+        ).textContent =
+          currencyText(
+            summary.totalStockValue || 0
+          );
+
+        document.getElementById(
+          'freeLowStockRecords'
+        ).textContent =
+          numberText(lowStockCount);
+
+        renderFreeInventoryRows(
+          rows,
+          pagination
+        );
+
+        renderInventoryPagination(
+          'freeInventoryPagination',
+          pagination,
+          'loadFreeInventory'
+        );
+
+        updateInventoryRecordText(
+          'freeInventoryRecordText',
+          pagination
+        );
+
+      } catch (error) {
+        showStatus(
+          error.message ||
+          'Unable to load free inventory.',
+          'error'
+        );
+      } finally {
+        setLoading(false);
+      }
+    }
+
+
+    function renderFreeInventoryRows(
+      rows,
+      pagination
+    ) {
+      const body =
+        document.getElementById(
+          'freeInventoryBody'
+        );
+
+      if (!rows.length) {
+        body.innerHTML =
+          emptyRow(6);
+        return;
+      }
+
+      const startSerial =
+        (
+          (
+            pagination.pageNumber || 1
+          ) -
+          1
+        ) *
+        (
+          pagination.pageSize ||
+          rows.length
+        );
+
+      body.innerHTML =
+        rows.map(
+          function (record, index) {
+            const description = [
+              record.categoryName,
+              record.skuName
+            ]
+              .filter(Boolean)
+              .join(' / ');
+
+            return (
+              '<tr>' +
+                '<td>' +
+                  numberText(
+                    startSerial +
+                    index +
+                    1
+                  ) +
+                '</td>' +
+                '<td>' +
+                  escapeHtml(
+                    record.skuCode || ''
+                  ) +
+                '</td>' +
+                '<td class="inventory-description-cell">' +
+                  escapeHtml(
+                    description || '-'
+                  ) +
+                '</td>' +
+                '<td class="qty-cell">' +
+                  numberText(
+                    record.availableQty
+                  ) +
+                '</td>' +
+                '<td class="money-cell">' +
+                  currencyText(
+                    record.averageRate
+                  ) +
+                '</td>' +
+                '<td class="money-cell">' +
+                  currencyText(
+                    record.stockValue
+                  ) +
+                '</td>' +
+              '</tr>'
+            );
+          }
+        ).join('');
+    }
+
+        async function loadCustomizeInventory(
+      pageNumber
+    ) {
+      const selectedPage =
+        Number(pageNumber) ||
+        APP.state.customizeInventoryPage ||
+        1;
+
+      APP.state.customizeInventoryPage =
+        selectedPage;
+
+      setLoading(true);
+
+      try {
+        const responses =
+          await Promise.all([
+            api(
+              'GET_CUSTOMIZE_INVENTORY',
+              {
+                search:
+                  document
+                    .getElementById(
+                      'customizeSearch'
+                    ).value.trim(),
+
+                projectId:
+                  document
+                    .getElementById(
+                      'customizeProjectFilter'
+                    ).value,
+
+                pageNumber:
+                  selectedPage,
+
+                pageSize:
+                  APP.state.inventoryPageSize
+              }
+            ),
+
+            api('GET_DASHBOARD')
+          ]);
+
+        const result = responses[0];
+        const dashboardResult = responses[1];
+
+        assertSuccess(result);
+
+        const rows =
+          result.data.records.records || [];
+
+        const pagination =
+          result.data.records.pagination || {
+            pageNumber: 1,
+            pageSize:
+              APP.state.inventoryPageSize,
+            totalRecords: rows.length,
+            totalPages: 1
+          };
+
+        const summary =
+          result.data.summary || {};
+
+        const dashboard =
+          dashboardResult &&
+          dashboardResult.success
+            ? dashboardResult.data
+            : {};
+
+        const projectWise =
+          dashboard.projectWiseCustomize ||
+          [];
+
+        document.getElementById(
+          'customizeTotalProjects'
+        ).textContent =
+          numberText(
+            projectWise.length
+          );
+
+        document.getElementById(
+          'customizeTotalSkuRecords'
+        ).textContent =
+          numberText(
+            summary.totalRecords || 0
+          );
+
+        document.getElementById(
+          'customizeTotalAvailableQty'
+        ).textContent =
+          numberText(
+            summary.totalAvailableQty || 0
+          );
+
+        document.getElementById(
+          'customizeTotalStockValue'
+        ).textContent =
+          currencyText(
+            summary.totalStockValue || 0
+          );
+
+        renderCustomizeInventoryRows(
+          rows,
+          pagination
+        );
+
+        renderInventoryPagination(
+          'customizeInventoryPagination',
+          pagination,
+          'loadCustomizeInventory'
+        );
+
+        updateInventoryRecordText(
+          'customizeInventoryRecordText',
+          pagination
+        );
+
+      } catch (error) {
+        showStatus(
+          error.message ||
+          'Unable to load customize inventory.',
+          'error'
+        );
+      } finally {
+        setLoading(false);
+      }
+    }
+
+
+    function renderCustomizeInventoryRows(
+      rows,
+      pagination
+    ) {
+      const body =
+        document.getElementById(
+          'customizeInventoryBody'
+        );
+
+      if (!rows.length) {
+        body.innerHTML =
+          emptyRow(7);
+        return;
+      }
+
+      const startSerial =
+        (
+          (
+            pagination.pageNumber || 1
+          ) -
+          1
+        ) *
+        (
+          pagination.pageSize ||
+          rows.length
+        );
+
+      body.innerHTML =
+        rows.map(
+          function (record, index) {
+            const description = [
+              record.categoryName,
+              record.skuName
+            ]
+              .filter(Boolean)
+              .join(' / ');
+
+            return (
+              '<tr>' +
+                '<td>' +
+                  numberText(
+                    startSerial +
+                    index +
+                    1
+                  ) +
+                '</td>' +
+                '<td class="inventory-project-cell">' +
+                  escapeHtml(
+                    record.projectName || '-'
+                  ) +
+                '</td>' +
+                '<td>' +
+                  escapeHtml(
+                    record.skuCode || ''
+                  ) +
+                '</td>' +
+                '<td class="inventory-description-cell">' +
+                  escapeHtml(
+                    description || '-'
+                  ) +
+                '</td>' +
+                '<td class="qty-cell">' +
+                  numberText(
+                    record.availableQty
+                  ) +
+                '</td>' +
+                '<td class="money-cell">' +
+                  currencyText(
+                    record.averageRate
+                  ) +
+                '</td>' +
+                '<td class="money-cell">' +
+                  currencyText(
+                    record.stockValue
+                  ) +
+                '</td>' +
+              '</tr>'
+            );
+          }
+        ).join('');
+    }
+
+
+    function renderInventoryPagination(
+      containerId,
+      pagination,
+      functionName
+    ) {
+      const container =
+        document.getElementById(
+          containerId
+        );
+
+      if (!container) {
+        return;
+      }
+
+      const currentPage =
+        Number(
+          pagination.pageNumber || 1
+        );
+
+      const totalPages =
+        Math.max(
+          1,
+          Number(
+            pagination.totalPages || 1
+          )
+        );
+
+      const firstDisabled =
+        currentPage <= 1;
+
+      const lastDisabled =
+        currentPage >= totalPages;
+
+      container.innerHTML =
+        '<button class="inventory-page-button" ' +
+          (
+            firstDisabled
+              ? 'disabled'
+              : ''
+          ) +
+          ' onclick="' +
+          functionName +
+          '(1)">«</button>' +
+
+        '<button class="inventory-page-button" ' +
+          (
+            firstDisabled
+              ? 'disabled'
+              : ''
+          ) +
+          ' onclick="' +
+          functionName +
+          '(' +
+          Math.max(
+            1,
+            currentPage - 1
+          ) +
+          ')">‹</button>' +
+
+        '<button class="inventory-page-button active">' +
+          currentPage +
+        '</button>' +
+
+        '<button class="inventory-page-button" ' +
+          (
+            lastDisabled
+              ? 'disabled'
+              : ''
+          ) +
+          ' onclick="' +
+          functionName +
+          '(' +
+          Math.min(
+            totalPages,
+            currentPage + 1
+          ) +
+          ')">›</button>' +
+
+        '<button class="inventory-page-button" ' +
+          (
+            lastDisabled
+              ? 'disabled'
+              : ''
+          ) +
+          ' onclick="' +
+          functionName +
+          '(' +
+          totalPages +
+          ')">»</button>';
+    }
+
+
+    function updateInventoryRecordText(
+      elementId,
+      pagination
+    ) {
+      const element =
+        document.getElementById(
+          elementId
+        );
+
+      if (!element) {
+        return;
+      }
+
+      const totalRecords =
+        Number(
+          pagination.totalRecords || 0
+        );
+
+      const pageSize =
+        Number(
+          pagination.pageSize ||
+          APP.state.inventoryPageSize
+        );
+
+      const pageNumber =
+        Number(
+          pagination.pageNumber || 1
+        );
+
+      if (!totalRecords) {
+        element.textContent =
+          'Showing 0 records';
+        return;
+      }
+
+      const from =
+        (
+          pageNumber -
+          1
+        ) *
+        pageSize +
+        1;
+
+      const to =
+        Math.min(
+          totalRecords,
+          pageNumber *
+          pageSize
+        );
+
+      element.textContent =
+        'Showing ' +
+        from +
+        ' to ' +
+        to +
+        ' of ' +
+        totalRecords +
+        ' records';
+    }
+
+
+    async function refreshEligibility() {
+      setLoading(true);
+
+      try {
+        const result =
+          await api(
+            'REFRESH_ELIGIBILITY'
+          );
+
+        assertSuccess(result);
+
+        showStatus(
+          result.message,
+          'success'
+        );
+
+        await loadCustomizeInventory();
+
+      } catch (error) {
+        showStatus(
+          error.message,
+          'error'
+        );
+      } finally {
+        setLoading(false);
+      }
+    }
+
+        async function loadInwardTransactions() {
+      return;
+    }
+
+        async function loadOutwardTransactions() {
+      return;
+    }
+
+    async function loadApprovals() {
+      setLoading(true);
+
+      try {
+        const result =
+          await api(
+            'GET_APPROVAL_REQUESTS',
+            {
+              status:
+                document.getElementById(
+                  'approvalStatusFilter'
+                ).value,
+              pageNumber: 1,
+              pageSize: 100
+            }
+          );
+
+        assertSuccess(result);
+
+        const rows =
+          result.data.records || [];
+
+        const body =
+          document.getElementById(
+            'approvalsBody'
+          );
+
+        if (!rows.length) {
+          body.innerHTML =
+            emptyRow(7);
+          return;
+        }
+
+        body.innerHTML =
+          rows.map(function (record) {
+            const actions = [];
+
+            if (record.status === 'PENDING') {
+              actions.push(
+                actionButton(
+                  'Approve',
+                  'success',
+                  'openApprovalAction(' +
+                    JSON.stringify(record.requestId) +
+                    ',"approve")'
+                )
+              );
+
+              actions.push(
+                actionButton(
+                  'Reject',
+                  'danger',
+                  'openApprovalAction(' +
+                    JSON.stringify(record.requestId) +
+                    ',"reject")'
+                )
+              );
+
+              actions.push(
+                actionButton(
+                  'Resend Email',
+                  'secondary',
+                  'resendApprovalEmail(' +
+                    JSON.stringify(record.requestId) +
+                    ')'
+                )
+              );
+            }
+
+            if (record.status === 'APPROVED') {
+              actions.push(
+                actionButton(
+                  'Execute',
+                  'primary',
+                  'executeApproval(' +
+                    JSON.stringify(record.requestId) +
+                    ')'
+                )
+              );
+            }
+
+            return (
+              '<tr>' +
+                '<td>' +
+                  escapeHtml(record.requestId) +
+                '</td>' +
+                '<td>' +
+                  escapeHtml(record.requestDate) +
+                '</td>' +
+                '<td>' +
+                  escapeHtml(record.sourceProject) +
+                '</td>' +
+                '<td>' +
+                  escapeHtml(record.destinationProject) +
+                '</td>' +
+                '<td>' +
+                  numberText(record.totalQuantity) +
+                '</td>' +
+                '<td>' +
+                  statusBadge(record.status) +
+                '</td>' +
+                '<td>' +
+                  escapeHtml(
+                    record.approvedHodName ||
+                    (
+                      record.status === 'PENDING'
+                        ? 'Pending'
+                        : '-'
+                    )
+                  ) +
+                '</td>' +
+                '<td>' +
+                  actions.join(' ') +
+                '</td>' +
+              '</tr>'
+            );
+          }).join('');
+
+      } catch (error) {
+        showStatus(
+          error.message,
+          'error'
+        );
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    function openApprovalAction(requestId, mode) {
+      const isApprove =
+        mode === 'approve';
+
+      document.getElementById(
+        'actionModalTitle'
+      ).textContent =
+        isApprove
+          ? 'Approve Request'
+          : 'Reject Request';
+
+      document.getElementById(
+        'actionModalBody'
+      ).innerHTML =
+        '<div class="field">' +
+          '<label>' +
+            (isApprove
+              ? 'Approval Remarks'
+              : 'Rejection Reason') +
+          '</label>' +
+          '<textarea class="textarea" id="actionText"></textarea>' +
+        '</div>';
+
+      document.getElementById(
+        'actionModalFooter'
+      ).innerHTML =
+        '<button class="btn btn-secondary" onclick="closeActionModal()">Cancel</button>' +
+        '<button class="btn ' +
+          (isApprove
+            ? 'btn-success'
+            : 'btn-danger') +
+          '" onclick="submitApprovalAction(' +
+            JSON.stringify(requestId) +
+            ',' +
+            JSON.stringify(mode) +
+          ')">' +
+          (isApprove
+            ? 'Approve'
+            : 'Reject') +
+        '</button>';
+
+      document.getElementById(
+        'actionModal'
+      ).classList.add('show');
+    }
+
+    function closeActionModal() {
+      document.getElementById(
+        'actionModal'
+      ).classList.remove('show');
+    }
+
+    async function submitApprovalAction(requestId, mode) {
+      const text =
+        document.getElementById(
+          'actionText'
+        ).value.trim();
+
+      if (
+        mode === 'reject' &&
+        !text
+      ) {
+        showStatus(
+          'Rejection reason is required.',
+          'error'
+        );
+        return;
+      }
+
+      closeActionModal();
+      setLoading(true);
+
+      try {
+        const result =
+          await api(
+            mode === 'approve'
+              ? 'APPROVE_REQUEST'
+              : 'REJECT_REQUEST',
+            mode === 'approve'
+              ? {
+                  requestId:
+                    requestId,
+                  remarks:
+                    text
+                }
+              : {
+                  requestId:
+                    requestId,
+                  reason:
+                    text
+                }
+          );
+
+        assertSuccess(result);
+
+        showStatus(
+          result.message,
+          'success'
+        );
+
+        await loadApprovals();
+
+      } catch (error) {
+        showStatus(
+          error.message,
+          'error'
+        );
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    async function executeApproval(requestId) {
+      if (
+        !confirm(
+          'Execute approved outward for ' +
+          requestId +
+          '?'
+        )
+      ) {
+        return;
+      }
+
+      setLoading(true);
+
+      try {
+        const result =
+          await api(
+            'EXECUTE_APPROVED_OUTWARD',
+            {
+              requestId:
+                requestId
+            }
+          );
+
+        assertSuccess(result);
+
+        showStatus(
+          result.message,
+          'success'
+        );
+
+        await loadApprovals();
+        await loadDashboard();
+
+      } catch (error) {
+        showStatus(
+          error.message,
+          'error'
+        );
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    async function resendApprovalEmail(requestId) {
+      setLoading(true);
+
+      try {
+        const result =
+          await api(
+            'RESEND_APPROVAL_EMAIL',
+            {
+              requestId:
+                requestId
+            }
+          );
+
+        assertSuccess(result);
+
+        showStatus(
+          result.message,
+          'success'
+        );
+
+      } catch (error) {
+        showStatus(
+          error.message,
+          'error'
+        );
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    async function loadConversions() {
+      setLoading(true);
+
+      try {
+        const result =
+          await api(
+            'GET_CONVERSION_REQUESTS',
+            {
+              status:
+                document.getElementById(
+                  'conversionStatusFilter'
+                ).value,
+              pageNumber: 1,
+              pageSize: 100
+            }
+          );
+
+        assertSuccess(result);
+
+        const rows =
+          result.data.records || [];
+
+        const body =
+          document.getElementById(
+            'conversionsBody'
+          );
+
+        if (!rows.length) {
+          body.innerHTML =
+            emptyRow(7);
+          return;
+        }
+
+        body.innerHTML =
+          rows.map(function (record) {
+            const actions = [];
+
+            if (record.status === 'PENDING') {
+              actions.push(
+                actionButton(
+                  'Approve',
+                  'success',
+                  'approveConversion(' +
+                    JSON.stringify(record.conversionId) +
+                    ')'
+                )
+              );
+
+              actions.push(
+                actionButton(
+                  'Reject',
+                  'danger',
+                  'rejectConversion(' +
+                    JSON.stringify(record.conversionId) +
+                    ')'
+                )
+              );
+            }
+
+            if (record.status === 'APPROVED') {
+              actions.push(
+                actionButton(
+                  'Execute',
+                  'primary',
+                  'executeConversion(' +
+                    JSON.stringify(record.conversionId) +
+                    ')'
+                )
+              );
+            }
+
+            return (
+              '<tr>' +
+                '<td>' +
+                  escapeHtml(record.conversionId) +
+                '</td>' +
+                '<td>' +
+                  escapeHtml(record.requestDate) +
+                '</td>' +
+                '<td>' +
+                  escapeHtml(record.projectName) +
+                '</td>' +
+                '<td>' +
+                  numberText(record.totalQuantity) +
+                '</td>' +
+                '<td>' +
+                  currencyText(record.totalAmount) +
+                '</td>' +
+                '<td>' +
+                  statusBadge(record.status) +
+                '</td>' +
+                '<td>' +
+                  actions.join(' ') +
+                '</td>' +
+              '</tr>'
+            );
+          }).join('');
+
+      } catch (error) {
+        showStatus(
+          error.message,
+          'error'
+        );
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    async function openConversionModal() {
+      setLoading(true);
+
+      try {
+        const result =
+          await api(
+            'GET_ELIGIBLE_CUSTOMIZE',
+            {
+              pageNumber: 1,
+              pageSize: 500
+            }
+          );
+
+        assertSuccess(result);
+
+        APP.state.eligibleCustomize =
+          result.data.records || [];
+
+        const select =
+          document.getElementById(
+            'conversionSku'
+          );
+
+        select.innerHTML =
+          '<option value="">Select eligible SKU</option>' +
+          APP.state.eligibleCustomize
+            .map(function (record) {
+              return (
+                '<option value="' +
+                  escapeHtml(record.skuId) +
+                  '" data-project="' +
+                  escapeHtml(record.projectId) +
+                '">' +
+                  escapeHtml(
+                    record.projectName +
+                    ' - ' +
+                    record.skuCode +
+                    ' - Qty ' +
+                    record.availableQty
+                  ) +
+                '</option>'
+              );
+            })
+            .join('');
+
+        document.getElementById(
+          'conversionRequestedBy'
+        ).value =
+          APP.state.bootstrap.user
+            .employeeName ||
+          APP.state.bootstrap.user.email;
+
+        document.getElementById(
+          'conversionApprover'
+        ).value =
+          APP.state.bootstrap.user.email;
+
+        document.getElementById(
+          'conversionReference'
+        ).value =
+          'CNV-' + Date.now();
+
+        document.getElementById(
+          'conversionModal'
+        ).classList.add('show');
+
+      } catch (error) {
+        showStatus(
+          error.message,
+          'error'
+        );
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    function closeConversionModal() {
+      document.getElementById(
+        'conversionModal'
+      ).classList.remove('show');
+    }
+
+    async function submitConversionRequest() {
+      const selectedSku =
+        document.getElementById(
+          'conversionSku'
+        ).value;
+
+      const record =
+        APP.state.eligibleCustomize
+          .find(function (item) {
+            return item.skuId ===
+              selectedSku;
+          });
+
+      const projectId =
+        document.getElementById(
+          'conversionProject'
+        ).value ||
+        (record
+          ? record.projectId
+          : '');
+
+      if (
+        !projectId ||
+        !selectedSku
+      ) {
+        showStatus(
+          'Project and eligible SKU are required.',
+          'error'
+        );
+        return;
+      }
+
+      setLoading(true);
+
+      try {
+        const result =
+          await api(
+            'CREATE_CONVERSION_REQUEST',
+            {
+              projectId:
+                projectId,
+
+              approverEmail:
+                document.getElementById(
+                  'conversionApprover'
+                ).value.trim(),
+
+              referenceNo:
+                document.getElementById(
+                  'conversionReference'
+                ).value.trim(),
+
+              requestedBy:
+                document.getElementById(
+                  'conversionRequestedBy'
+                ).value.trim(),
+
+              remarks:
+                document.getElementById(
+                  'conversionRemarks'
+                ).value.trim(),
+
+              items: [
+                {
+                  skuId:
+                    selectedSku,
+
+                  quantity:
+                    Number(
+                      document.getElementById(
+                        'conversionQty'
+                      ).value
+                    )
+                }
+              ]
+            }
+          );
+
+        assertSuccess(result);
+
+        closeConversionModal();
+
+        showStatus(
+          result.message,
+          'success'
+        );
+
+        await loadConversions();
+
+      } catch (error) {
+        showStatus(
+          error.message,
+          'error'
+        );
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    async function approveConversion(conversionId) {
+      const remarks =
+        prompt(
+          'Approval remarks:',
+          ''
+        );
+
+      if (remarks === null) {
+        return;
+      }
+
+      setLoading(true);
+
+      try {
+        const result =
+          await api(
+            'APPROVE_CONVERSION',
+            {
+              conversionId:
+                conversionId,
+              remarks:
+                remarks
+            }
+          );
+
+        assertSuccess(result);
+
+        showStatus(
+          result.message,
+          'success'
+        );
+
+        await loadConversions();
+
+      } catch (error) {
+        showStatus(
+          error.message,
+          'error'
+        );
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    async function rejectConversion(conversionId) {
+      const reason =
+        prompt(
+          'Rejection reason:',
+          ''
+        );
+
+      if (!reason) {
+        return;
+      }
+
+      setLoading(true);
+
+      try {
+        const result =
+          await api(
+            'REJECT_CONVERSION',
+            {
+              conversionId:
+                conversionId,
+              reason:
+                reason
+            }
+          );
+
+        assertSuccess(result);
+
+        showStatus(
+          result.message,
+          'success'
+        );
+
+        await loadConversions();
+
+      } catch (error) {
+        showStatus(
+          error.message,
+          'error'
+        );
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    async function executeConversion(conversionId) {
+      if (
+        !confirm(
+          'Execute conversion ' +
+          conversionId +
+          '?'
+        )
+      ) {
+        return;
+      }
+
+      setLoading(true);
+
+      try {
+        const result =
+          await api(
+            'EXECUTE_CONVERSION',
+            {
+              conversionId:
+                conversionId
+            }
+          );
+
+        assertSuccess(result);
+
+        showStatus(
+          result.message,
+          'success'
+        );
+
+        await loadConversions();
+        await loadDashboard();
+
+      } catch (error) {
+        showStatus(
+          error.message,
+          'error'
+        );
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    async function loadReport() {
+      setLoading(true);
+
+      try {
+        const reportType =
+          document.getElementById(
+            'reportType'
+          ).value;
+
+        const result =
+          await api(
+            'GET_REPORT',
+            {
+              reportType:
+                reportType,
+
+              filters: {
+                search:
+                  document.getElementById(
+                    'reportSearch'
+                  ).value.trim(),
+
+                pageNumber: 1,
+                pageSize: 200
+              }
+            }
+          );
+
+        assertSuccess(result);
+
+        renderGenericReport(
+          reportType,
+          result.data
+        );
+
+      } catch (error) {
+        showStatus(
+          error.message,
+          'error'
+        );
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    function renderGenericReport(reportType, data) {
+      const recordContainer =
+        data.records &&
+        Array.isArray(
+          data.records.records
+        )
+          ? data.records.records
+          : (
+              Array.isArray(data.records)
+                ? data.records
+                : []
+            );
+
+      const rows = recordContainer;
+
+      document.getElementById(
+        'reportSummary'
+      ).textContent =
+        data.summary
+          ? JSON.stringify(data.summary)
+          : 'Total Records: ' +
+            rows.length;
+
+      const head =
+        document.getElementById(
+          'reportHead'
+        );
+
+      const body =
+        document.getElementById(
+          'reportBody'
+        );
+
+      if (!rows.length) {
+        head.innerHTML = '';
+        body.innerHTML =
+          emptyRow(1);
+        return;
+      }
+
+      const keys =
+        Object.keys(rows[0])
+          .filter(function (key) {
+            return (
+              typeof rows[0][key] !==
+              'object'
+            );
+          });
+
+      head.innerHTML =
+        '<tr>' +
+        keys.map(function (key) {
+          return (
+            '<th>' +
+            escapeHtml(
+              humanize(key)
+            ) +
+            '</th>'
+          );
+        }).join('') +
+        '</tr>';
+
+      body.innerHTML =
+        rows.map(function (record) {
+          return (
+            '<tr>' +
+            keys.map(function (key) {
+              return (
+                '<td>' +
+                escapeHtml(
+                  record[key]
+                ) +
+                '</td>'
+              );
+            }).join('') +
+            '</tr>'
+          );
+        }).join('');
+    }
+
+    async function exportCurrentReport(reportType) {
+      await exportReport(
+        reportType,
+        {}
+      );
+    }
+
+    async function exportSelectedReport() {
+      await exportReport(
+        document.getElementById(
+          'reportType'
+        ).value,
+        {
+          search:
+            document.getElementById(
+              'reportSearch'
+            ).value.trim()
+        }
+      );
+    }
+
+    async function exportReport(reportType, filters) {
+      setLoading(true);
+
+      try {
+        const result =
+          await api(
+            'EXPORT_REPORT_CSV',
+            {
+              reportType:
+                reportType,
+              filters:
+                filters || {}
+            }
+          );
+
+        assertSuccess(result);
+
+        downloadTextFile(
+          result.data.fileName,
+          result.data.csv,
+          result.data.mimeType ||
+            'text/csv'
+        );
+
+        showStatus(
+          'CSV downloaded successfully.',
+          'success'
+        );
+
+      } catch (error) {
+        showStatus(
+          error.message,
+          'error'
+        );
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    function downloadTextFile(fileName, content, mimeType) {
+      const blob =
+        new Blob(
+          [content],
+          {
+            type:
+              mimeType +
+              ';charset=utf-8'
+          }
+        );
+
+      const url =
+        URL.createObjectURL(blob);
+
+      const link =
+        document.createElement('a');
+
+      link.href = url;
+      link.download = fileName;
+
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+
+      URL.revokeObjectURL(url);
+    }
+
+    function assertSuccess(result) {
+      if (
+        !result ||
+        result.success !== true
+      ) {
+        throw new Error(
+          result &&
+          result.message
+            ? result.message
+            : 'Operation failed.'
+        );
+      }
+    }
+
+    function actionButton(label, type, onclick) {
+      return (
+        '<button class="btn btn-' +
+        type +
+        ' btn-sm" onclick="' +
+        onclick +
+        '">' +
+        escapeHtml(label) +
+        '</button>'
+      );
+    }
+
+    function statusBadge(value) {
+      const text =
+        String(value || '')
+          .toUpperCase();
+
+      let className =
+        'badge-info';
+
+      if (
+        [
+          'ACTIVE',
+          'AVAILABLE',
+          'APPROVED',
+          'EXECUTED',
+          'COMPLETED',
+          'YES'
+        ].indexOf(text) !== -1
+      ) {
+        className =
+          'badge-success';
+      } else if (
+        [
+          'PENDING',
+          'PARTIALLY USED',
+          'NO'
+        ].indexOf(text) !== -1
+      ) {
+        className =
+          'badge-warning';
+      } else if (
+        [
+          'REJECTED',
+          'CANCELLED',
+          'INACTIVE',
+          'OUT OF STOCK'
+        ].indexOf(text) !== -1
+      ) {
+        className =
+          'badge-danger';
+      }
+
+      return (
+        '<span class="badge ' +
+        className +
+        '">' +
+        escapeHtml(text) +
+        '</span>'
+      );
+    }
+
+    function emptyRow(columnCount) {
+      return (
+        '<tr>' +
+          '<td class="empty" colspan="' +
+          columnCount +
+          '">No records found.</td>' +
+        '</tr>'
+      );
+    }
+
+    function numberText(value) {
+      const number =
+        Number(value || 0);
+
+      return number.toLocaleString(
+        'en-IN',
+        {
+          maximumFractionDigits: 2
+        }
+      );
+    }
+
+    function currencyText(value) {
+      const number =
+        Number(value || 0);
+
+      return (
+        '₹' +
+        number.toLocaleString(
+          'en-IN',
+          {
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2
+          }
+        )
+      );
+    }
+
+    function humanize(text) {
+      return String(text || '')
+        .replace(
+          /([a-z0-9])([A-Z])/g,
+          '$1 $2'
+        )
+        .replace(/_/g, ' ')
+        .replace(
+          /\b\w/g,
+          function (letter) {
+            return letter.toUpperCase();
+          }
+        );
+    }
+
+    function escapeHtml(value) {
+      return String(
+        value == null
+          ? ''
+          : value
+      )
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
+    }
+  </script>
+</body>
+</html>
