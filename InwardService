@@ -1,0 +1,1654 @@
+/**
+ * PROJECT INVENTORY MANAGEMENT SYSTEM
+ * File: InwardService.gs
+ *
+ * Handles:
+ * - Free inventory inward
+ * - Customized/project inventory inward
+ * - SKU and project validation
+ * - Multiple item inward
+ * - Inventory balance updates
+ * - Automatic amount calculation
+ * - Transaction logging
+ */
+
+const INWARD_SERVICE_CONFIG = Object.freeze({
+  SHEET_NAME: 'Inward',
+
+  INVENTORY_TYPE: Object.freeze({
+    FREE: 'FREE',
+    CUSTOMIZE: 'CUSTOMIZE'
+  }),
+
+  INVENTORY_MOVEMENT_TYPE: Object.freeze({
+    FREE: 'FREE INVENTORY',
+    CUSTOMIZE: 'CUSTOMIZE INVENTORY'
+  }),
+
+  ID_PREFIX: 'INW',
+  MAX_ITEMS: 100
+});
+
+
+/**
+ * Returns the configured Inward sheet name.
+ */
+function getInwardSheetName_() {
+  if (
+    typeof APP_CONFIG !== 'undefined' &&
+    APP_CONFIG.SHEETS &&
+    APP_CONFIG.SHEETS.INWARD
+  ) {
+    return APP_CONFIG.SHEETS.INWARD;
+  }
+
+  return INWARD_SERVICE_CONFIG.SHEET_NAME;
+}
+
+
+/**
+ * Ensures the Inward sheet contains the exact required headers.
+ *
+ * Existing rows are not deleted.
+ */
+function ensureInwardHeaders() {
+  return safeExecute_(function () {
+    requireRole_(APP_CONFIG.USER_ROLES.ADMIN);
+
+    const sheet = getSystemSheet(
+      getInwardSheetName_()
+    );
+
+    const requiredHeaders = [
+      'Inward No',
+      'Date',
+      'Inventory Type',
+      'Vendor',
+      'Vendor Invoice No',
+      'Project',
+      'SKU ID',
+      'SKU Code',
+      'SKU Name',
+      'Qty',
+      'Unit',
+      'Rate',
+      'Amount',
+      'Remarks',
+      'Entered By'
+    ];
+
+    ensureExactInwardHeaders_(
+      sheet,
+      requiredHeaders
+    );
+
+    applyInwardSheetFormatting_(sheet);
+
+    return successResponse_(
+      'Inward headers verified successfully.',
+      {
+        sheetName: getInwardSheetName_(),
+        headers: requiredHeaders
+      }
+    );
+  }, 'Unable to verify Inward headers.');
+}
+
+
+/**
+ * Ensures the Inward headers exist in the exact order.
+ *
+ * This function should only be used while the Inward sheet
+ * does not contain production data.
+ */
+function ensureExactInwardHeaders_(
+  sheet,
+  requiredHeaders
+) {
+  const oldHeaders =
+    sheet.getLastColumn() > 0
+      ? sheet
+          .getRange(
+            1,
+            1,
+            1,
+            sheet.getLastColumn()
+          )
+          .getDisplayValues()[0]
+          .map(normalizeText_)
+      : [];
+
+  const lastRow = sheet.getLastRow();
+
+  const oldValues =
+    lastRow >= 2 &&
+    oldHeaders.length > 0
+      ? sheet
+          .getRange(
+            2,
+            1,
+            lastRow - 1,
+            oldHeaders.length
+          )
+          .getValues()
+      : [];
+
+  if (
+    sheet.getMaxColumns() <
+    requiredHeaders.length
+  ) {
+    sheet.insertColumnsAfter(
+      sheet.getMaxColumns(),
+      requiredHeaders.length -
+        sheet.getMaxColumns()
+    );
+  }
+
+  const mappedRows =
+    oldValues.map(function (oldRow) {
+      const oldRecord = {};
+
+      oldHeaders.forEach(
+        function (header, index) {
+          if (header) {
+            oldRecord[header] =
+              oldRow[index];
+          }
+        }
+      );
+
+      return requiredHeaders.map(
+        function (header) {
+          if (
+            Object.prototype
+              .hasOwnProperty.call(
+                oldRecord,
+                header
+              )
+          ) {
+            return oldRecord[header];
+          }
+
+          // Migration from the old single SKU column.
+          if (
+            header === 'SKU Code' &&
+            Object.prototype
+              .hasOwnProperty.call(
+                oldRecord,
+                'SKU'
+              )
+          ) {
+            return oldRecord['SKU'];
+          }
+
+          return '';
+        }
+      );
+    });
+
+  sheet
+    .getRange(
+      1,
+      1,
+      1,
+      requiredHeaders.length
+    )
+    .setValues([requiredHeaders])
+    .setFontWeight('bold');
+
+  if (lastRow >= 2) {
+    sheet
+      .getRange(
+        2,
+        1,
+        lastRow - 1,
+        Math.max(
+          sheet.getLastColumn(),
+          requiredHeaders.length
+        )
+      )
+      .clearContent();
+
+    if (mappedRows.length) {
+      sheet
+        .getRange(
+          2,
+          1,
+          mappedRows.length,
+          requiredHeaders.length
+        )
+        .setValues(mappedRows);
+    }
+  }
+
+  sheet.setFrozenRows(1);
+}
+
+
+/**
+ * Applies formatting and data validation.
+ */
+function applyInwardSheetFormatting_(sheet) {
+  const maxDataRows = Math.max(
+    sheet.getMaxRows() - 1,
+    1
+  );
+
+  sheet
+    .getRange(
+      2,
+      1,
+      maxDataRows,
+      15
+    )
+    .clearDataValidations();
+
+  const inventoryTypeRule =
+    SpreadsheetApp
+      .newDataValidation()
+      .requireValueInList(
+        [
+          INWARD_SERVICE_CONFIG
+            .INVENTORY_TYPE.FREE,
+
+          INWARD_SERVICE_CONFIG
+            .INVENTORY_TYPE.CUSTOMIZE
+        ],
+        true
+      )
+      .setAllowInvalid(false)
+      .build();
+
+  sheet
+    .getRange(2, 3, maxDataRows, 1)
+    .setDataValidation(
+      inventoryTypeRule
+    );
+
+  sheet
+    .getRange(2, 2, maxDataRows, 1)
+    .setNumberFormat(
+      'dd-mmm-yyyy hh:mm AM/PM'
+    );
+
+  // Qty column J.
+  sheet
+    .getRange(2, 10, maxDataRows, 1)
+    .setNumberFormat('0.000');
+
+  // Rate and Amount columns L:M.
+  sheet
+    .getRange(2, 12, maxDataRows, 2)
+    .setNumberFormat('0.00');
+
+  sheet
+    .getRange(1, 1, 1, 15)
+    .setFontWeight('bold');
+
+  sheet.setFrozenRows(1);
+  SpreadsheetApp.flush();
+}
+
+
+/**
+ * Creates an inward transaction.
+ *
+ * Request format:
+ *
+ * {
+ *   inventoryType: 'FREE',
+ *   vendor: 'ABC Supplier',
+ *   projectId: '',
+ *   items: [
+ *     {
+ *       skuId: 'SKU000001',
+ *       quantity: 10,
+ *       rate: 1250
+ *     }
+ *   ]
+ * }
+ *
+ * For customized inventory:
+ *
+ * {
+ *   inventoryType: 'CUSTOMIZE',
+ *   vendor: 'ABC Supplier',
+ *   projectId: 'PRJ000001',
+ *   items: [...]
+ * }
+ */
+function createInward(inwardData) {
+  return safeExecute_(function () {
+    const session =
+      requirePermission_('canInward');
+
+    const payload =
+      validateInwardRequest_(
+        inwardData
+      );
+
+    const inwardNo =
+      generateNextId_(
+        'INWARD',
+        INWARD_SERVICE_CONFIG.ID_PREFIX
+      );
+
+    const transactionDate =
+      new Date();
+
+    const savedRows = [];
+    const inventoryResults = [];
+
+    try {
+      /*
+       * Save each inward line and then update
+       * the corresponding inventory balance.
+       */
+      payload.items.forEach(
+        function (item) {
+          const amount =
+            roundTwo_(
+              item.quantity *
+              item.rate
+            );
+
+          const rowNumber =
+            appendObjectRow_(
+              getInwardSheetName_(),
+              {
+                'Inward No':
+                  inwardNo,
+
+                'Date':
+                  transactionDate,
+
+                'Inventory Type':
+                  payload.inventoryType,
+
+                'Vendor':
+                  payload.vendor,
+
+                'Vendor Invoice No':
+                  payload.vendorInvoiceNo,
+
+                'Project':
+                  payload.project
+                    ? payload.project.projectName
+                    : '',
+
+                'SKU ID':
+                  item.sku.skuId,
+
+                'SKU Code':
+                  item.sku.skuCode,
+
+                'SKU Name':
+                  item.sku.skuName,
+
+                'Qty':
+                  item.quantity,
+
+                'Unit':
+                  item.sku.uom,
+
+                'Rate':
+                  item.rate,
+
+                'Amount':
+                  amount,
+
+                'Remarks':
+                  payload.remarks,
+
+                'Entered By':
+                  session.email
+              }
+            );
+
+          savedRows.push(rowNumber);
+
+          const inventoryResult =
+            applyInventoryMovement({
+              inventoryType:
+                payload.inventoryMovementType,
+
+              movementType:
+                INVENTORY_SERVICE_CONFIG
+                  .MOVEMENT_TYPE.INWARD,
+
+              skuId:
+                item.sku.skuId,
+
+              projectId:
+                payload.project
+                  ? payload.project.projectId
+                  : '',
+
+              quantity:
+                item.quantity,
+
+              rate:
+                item.rate,
+
+              referenceId:
+                inwardNo,
+
+              remarks:
+                'Stock received from ' +
+                payload.vendor
+            });
+
+          if (
+            !inventoryResult ||
+            inventoryResult.success !== true
+          ) {
+            throw new Error(
+              inventoryResult &&
+              inventoryResult.message
+                ? inventoryResult.message
+                : 'Inventory update failed.'
+            );
+          }
+
+          inventoryResults.push(
+            inventoryResult.data
+          );
+        }
+      );
+
+      const totalQuantity =
+        payload.items.reduce(
+          function (total, item) {
+            return total +
+              item.quantity;
+          },
+          0
+        );
+
+      const totalAmount =
+        payload.items.reduce(
+          function (total, item) {
+            return total +
+              item.quantity *
+              item.rate;
+          },
+          0
+        );
+
+      addTransactionLog_(
+        session.email,
+        'INWARD',
+        'CREATE',
+        inwardNo,
+        {
+          inventoryType:
+            payload.inventoryType,
+
+          vendor:
+            payload.vendor,
+
+          vendorInvoiceNo:
+            payload.vendorInvoiceNo,
+
+          remarks:
+            payload.remarks,
+
+          projectId:
+            payload.project
+              ? payload.project.projectId
+              : '',
+
+          projectName:
+            payload.project
+              ? payload.project.projectName
+              : '',
+
+          itemCount:
+            payload.items.length,
+
+          totalQuantity:
+            roundTwo_(totalQuantity),
+
+          totalAmount:
+            roundTwo_(totalAmount)
+        }
+      );
+
+      return successResponse_(
+        'Inventory inward completed successfully.',
+        {
+          inwardNo:
+            inwardNo,
+
+          date:
+            formatDateTime_(
+              transactionDate
+            ),
+
+          inventoryType:
+            payload.inventoryType,
+
+          vendor:
+            payload.vendor,
+
+          vendorInvoiceNo:
+            payload.vendorInvoiceNo,
+
+          remarks:
+            payload.remarks,
+
+          project:
+            payload.project,
+
+          itemCount:
+            payload.items.length,
+
+          totalQuantity:
+            roundTwo_(
+              totalQuantity
+            ),
+
+          totalAmount:
+            roundTwo_(
+              totalAmount
+            ),
+
+          items:
+            inventoryResults
+        }
+      );
+
+    } catch (error) {
+      /*
+       * Remove inward rows if the inventory
+       * movement fails.
+       *
+       * Rows are removed in reverse order.
+       */
+      rollbackInwardRows_(
+        savedRows
+      );
+
+      throw error;
+    }
+  }, 'Unable to complete inventory inward.');
+}
+
+
+/**
+ * Validates the inward request.
+ */
+function validateInwardRequest_(
+  inwardData
+) {
+  if (
+    !inwardData ||
+    typeof inwardData !== 'object'
+  ) {
+    throw new Error(
+      'Invalid inward request.'
+    );
+  }
+
+  const inventoryType =
+    normalizeInwardInventoryType_(
+      inwardData.inventoryType
+    );
+
+  const vendor =
+    normalizeText_(
+      inwardData.vendor
+    );
+
+  const vendorInvoiceNo =
+    normalizeText_(
+      inwardData.vendorInvoiceNo
+    );
+
+  const remarks =
+    normalizeText_(
+      inwardData.remarks
+    );
+
+  if (!vendor) {
+    throw new Error(
+      'Vendor is required.'
+    );
+  }
+
+  let project = null;
+
+  if (
+    inventoryType ===
+    INWARD_SERVICE_CONFIG
+      .INVENTORY_TYPE.CUSTOMIZE
+  ) {
+    const projectId =
+      normalizeUpper_(
+        inwardData.projectId
+      );
+
+    if (!projectId) {
+      throw new Error(
+        'Project is required for customized inventory.'
+      );
+    }
+
+    const projectRecord =
+      getProjectRecordById_(
+        projectId
+      );
+
+    if (!projectRecord) {
+      throw new Error(
+        'Project not found: ' +
+        projectId
+      );
+    }
+
+    if (
+      normalizeUpper_(
+        projectRecord['Status']
+      ) !== 'ACTIVE'
+    ) {
+      throw new Error(
+        'Selected project is not active.'
+      );
+    }
+
+    project = {
+      projectId:
+        normalizeUpper_(
+          projectRecord['Project ID']
+        ),
+
+      projectCode:
+        normalizeUpper_(
+          projectRecord['Project Code']
+        ),
+
+      projectName:
+        normalizeText_(
+          projectRecord['Project Name']
+        ),
+
+      hodEmail:
+        normalizeLower_(
+          projectRecord['HOD Email']
+        )
+    };
+  }
+
+  if (
+    !Array.isArray(
+      inwardData.items
+    ) ||
+    inwardData.items.length === 0
+  ) {
+    throw new Error(
+      'At least one inward item is required.'
+    );
+  }
+
+  if (
+    inwardData.items.length >
+    INWARD_SERVICE_CONFIG.MAX_ITEMS
+  ) {
+    throw new Error(
+      'A maximum of ' +
+      INWARD_SERVICE_CONFIG.MAX_ITEMS +
+      ' items are allowed per inward.'
+    );
+  }
+
+  const duplicateSkuMap = {};
+
+  const items =
+    inwardData.items.map(
+      function (
+        inputItem,
+        index
+      ) {
+        const lineNumber =
+          index + 1;
+
+        if (
+          !inputItem ||
+          typeof inputItem !== 'object'
+        ) {
+          throw new Error(
+            'Invalid item data at line ' +
+            lineNumber +
+            '.'
+          );
+        }
+
+        const skuId =
+          normalizeUpper_(
+            inputItem.skuId
+          );
+
+        if (!skuId) {
+          throw new Error(
+            'SKU is required at line ' +
+            lineNumber +
+            '.'
+          );
+        }
+
+        if (
+          duplicateSkuMap[skuId]
+        ) {
+          throw new Error(
+            'Duplicate SKU found: ' +
+            skuId
+          );
+        }
+
+        duplicateSkuMap[skuId] =
+          true;
+
+        const skuRecord =
+          getSkuRecordById_(
+            skuId
+          );
+
+        if (!skuRecord) {
+          throw new Error(
+            'SKU not found at line ' +
+            lineNumber +
+            ': ' +
+            skuId
+          );
+        }
+
+        if (
+          normalizeUpper_(
+            skuRecord['Status']
+          ) !== 'ACTIVE'
+        ) {
+          throw new Error(
+            'SKU is inactive at line ' +
+            lineNumber +
+            ': ' +
+            skuId
+          );
+        }
+
+        const quantity =
+          toPositiveNumber_(
+            inputItem.quantity,
+            'Quantity at line ' +
+              lineNumber
+          );
+
+        const rate =
+          validateNonNegativeNumber_(
+            skuRecord[
+              'Standard Rate'
+            ],
+            'Standard Rate at line ' +
+              lineNumber
+          );
+
+        return {
+          sku: {
+            skuId:
+              normalizeUpper_(
+                skuRecord['SKU ID']
+              ),
+
+            skuCode:
+              normalizeUpper_(
+                skuRecord['SKU Code']
+              ),
+
+            skuName:
+              normalizeText_(
+                skuRecord['SKU Name']
+              ),
+
+            categoryName:
+              normalizeText_(
+                skuRecord[
+                  'Category Name'
+                ]
+              ),
+
+            uom:
+              normalizeUpper_(
+                skuRecord['UOM']
+              )
+          },
+
+          quantity:
+            roundTwo_(
+              quantity
+            ),
+
+          rate:
+            roundTwo_(
+              rate
+            )
+        };
+      }
+    );
+
+  return {
+    inventoryType:
+      inventoryType,
+
+    inventoryMovementType:
+      inventoryType ===
+      INWARD_SERVICE_CONFIG
+        .INVENTORY_TYPE.FREE
+        ? INWARD_SERVICE_CONFIG
+            .INVENTORY_MOVEMENT_TYPE
+            .FREE
+        : INWARD_SERVICE_CONFIG
+            .INVENTORY_MOVEMENT_TYPE
+            .CUSTOMIZE,
+
+    vendor:
+      vendor,
+
+    vendorInvoiceNo:
+      vendorInvoiceNo,
+
+    remarks:
+      remarks,
+
+    project:
+      project,
+
+    items:
+      items
+  };
+}
+
+
+/**
+ * Normalizes Inward inventory type.
+ *
+ * Supported input:
+ * FREE
+ * FREE INVENTORY
+ * CUSTOMIZE
+ * CUSTOMIZE INVENTORY
+ */
+function normalizeInwardInventoryType_(
+  inventoryType
+) {
+  const normalizedType =
+    normalizeUpper_(
+      inventoryType
+    );
+
+  if (
+    normalizedType === 'FREE' ||
+    normalizedType ===
+      'FREE INVENTORY'
+  ) {
+    return INWARD_SERVICE_CONFIG
+      .INVENTORY_TYPE.FREE;
+  }
+
+  if (
+    normalizedType ===
+      'CUSTOMIZE' ||
+    normalizedType ===
+      'CUSTOMIZE INVENTORY'
+  ) {
+    return INWARD_SERVICE_CONFIG
+      .INVENTORY_TYPE.CUSTOMIZE;
+  }
+
+  throw new Error(
+    'Invalid inward inventory type: ' +
+    normalizedType
+  );
+}
+
+
+/**
+ * Removes inward rows created during
+ * a failed transaction.
+ */
+function rollbackInwardRows_(
+  rowNumbers
+) {
+  if (
+    !Array.isArray(rowNumbers) ||
+    rowNumbers.length === 0
+  ) {
+    return;
+  }
+
+  const sheet =
+    getSystemSheet(
+      getInwardSheetName_()
+    );
+
+  rowNumbers
+    .slice()
+    .sort(function (first, second) {
+      return second - first;
+    })
+    .forEach(function (rowNumber) {
+      if (
+        rowNumber >= 2 &&
+        rowNumber <=
+          sheet.getLastRow()
+      ) {
+        sheet.deleteRow(
+          rowNumber
+        );
+      }
+    });
+}
+
+
+/**
+ * Returns one inward transaction.
+ */
+function getInwardByNumber(
+  inwardNo
+) {
+  return safeExecute_(function () {
+    requireAuthenticatedUser_();
+
+    const normalizedInwardNo =
+      normalizeUpper_(
+        inwardNo
+      );
+
+    if (!normalizedInwardNo) {
+      throw new Error(
+        'Inward number is required.'
+      );
+    }
+
+    const records =
+      getSheetObjects_(
+        getInwardSheetName_()
+      ).filter(
+        function (record) {
+          return (
+            normalizeUpper_(
+              record['Inward No']
+            ) ===
+            normalizedInwardNo
+          );
+        }
+      );
+
+    if (
+      records.length === 0
+    ) {
+      throw new Error(
+        'Inward transaction not found: ' +
+        normalizedInwardNo
+      );
+    }
+
+    return successResponse_(
+      'Inward transaction loaded successfully.',
+      mapInwardTransaction_(
+        records
+      )
+    );
+  }, 'Unable to load inward transaction.');
+}
+
+
+/**
+ * Returns inward transactions with filters.
+ *
+ * filters:
+ * {
+ *   search: '',
+ *   inventoryType: '',
+ *   projectName: '',
+ *   dateFrom: '',
+ *   dateTo: '',
+ *   pageNumber: 1,
+ *   pageSize: 20
+ * }
+ */
+function getInwardTransactions(
+  filters
+) {
+  return safeExecute_(function () {
+    requireAuthenticatedUser_();
+
+    filters = filters || {};
+
+    const search =
+      normalizeLower_(
+        filters.search
+      );
+
+    const inventoryType =
+      filters.inventoryType
+        ? normalizeInwardInventoryType_(
+            filters.inventoryType
+          )
+        : '';
+
+    const projectName =
+      normalizeLower_(
+        filters.projectName
+      );
+
+    const dateFrom =
+      parseDate_(
+        filters.dateFrom
+      );
+
+    const dateTo =
+      parseDate_(
+        filters.dateTo
+      );
+
+    const records =
+      getSheetObjects_(
+        getInwardSheetName_()
+      ).filter(
+        function (record) {if (
+  !normalizeText_(
+    record['Inward No']
+  )
+) {
+  return false;
+}
+          if (
+            inventoryType &&
+            normalizeUpper_(
+              record[
+                'Inventory Type'
+              ]
+            ) !== inventoryType
+          ) {
+            return false;
+          }
+
+          if (
+            projectName &&
+            normalizeLower_(
+              record['Project']
+            ) !== projectName
+          ) {
+            return false;
+          }
+
+          const inwardDate =
+            parseDate_(
+              record['Date']
+            );
+
+          if (
+            dateFrom &&
+            (
+              !inwardDate ||
+              inwardDate.getTime() <
+                dateFrom.getTime()
+            )
+          ) {
+            return false;
+          }
+
+          if (
+            dateTo &&
+            (
+              !inwardDate ||
+              inwardDate.getTime() >
+                endOfDay_(
+                  dateTo
+                ).getTime()
+            )
+          ) {
+            return false;
+          }
+
+          if (search) {
+            const searchableText = [
+              record['Inward No'],
+              record[
+                'Inventory Type'
+              ],
+              record['Vendor'],
+              record['Project'],
+              record['SKU Code'],
+              record['Unit'],
+              record['Entered By']
+            ]
+              .map(
+                normalizeLower_
+              )
+              .join(' ');
+
+            if (
+              searchableText.indexOf(
+                search
+              ) === -1
+            ) {
+              return false;
+            }
+          }
+
+          return true;
+        }
+      );
+
+    const transactionMap = {};
+
+    records.forEach(
+      function (record) {
+        const inwardNo =
+          normalizeUpper_(
+            record['Inward No']
+          );
+
+        if (!transactionMap[
+          inwardNo
+        ]) {
+          transactionMap[
+            inwardNo
+          ] = [];
+        }
+
+        transactionMap[
+          inwardNo
+        ].push(record);
+      }
+    );
+
+    const transactions =
+      Object.keys(
+        transactionMap
+      )
+        .map(
+          function (
+            inwardNo
+          ) {
+            return mapInwardTransaction_(
+              transactionMap[
+                inwardNo
+              ]
+            );
+          }
+        )
+        .sort(
+          function (
+            first,
+            second
+          ) {
+            const firstDate =
+              parseDate_(
+                first.date
+              ) ||
+              new Date(0);
+
+            const secondDate =
+              parseDate_(
+                second.date
+              ) ||
+              new Date(0);
+
+            return (
+              secondDate.getTime() -
+              firstDate.getTime()
+            );
+          }
+        );
+
+    return successResponse_(
+      'Inward transactions loaded successfully.',
+      paginateRecords_(
+        transactions,
+        filters.pageNumber || 1,
+        filters.pageSize || 20
+      )
+    );
+  }, 'Unable to load inward transactions.');
+}
+
+
+/**
+ * Maps inward rows into one transaction.
+ */
+function mapInwardTransaction_(
+  records
+) {
+  const firstRecord =
+    records[0];
+
+  const items =
+    records.map(
+      function (record) {
+        return {
+          skuCode:
+            normalizeUpper_(
+              record['SKU Code']
+            ),
+
+          quantity:
+            toNumber_(
+              record['Qty'],
+              0
+            ),
+
+          unit:
+            normalizeUpper_(
+              record['Unit']
+            ),
+
+          rate:
+            toNumber_(
+              record['Rate'],
+              0
+            ),
+
+          amount:
+            toNumber_(
+              record['Amount'],
+              0
+            )
+        };
+      }
+    );
+
+  return {
+    inwardNo:
+      normalizeUpper_(
+        firstRecord[
+          'Inward No'
+        ]
+      ),
+
+    date:
+      formatDateTime_(
+        firstRecord['Date']
+      ),
+
+    inventoryType:
+      normalizeUpper_(
+        firstRecord[
+          'Inventory Type'
+        ]
+      ),
+
+    vendor:
+      normalizeText_(
+        firstRecord['Vendor']
+      ),
+
+    vendorInvoiceNo:
+      normalizeText_(
+        firstRecord[
+          'Vendor Invoice No'
+        ]
+      ),
+
+    remarks:
+      normalizeText_(
+        firstRecord['Remarks']
+      ),
+
+    project:
+      normalizeText_(
+        firstRecord['Project']
+      ),
+
+    enteredBy:
+      normalizeLower_(
+        firstRecord[
+          'Entered By'
+        ]
+      ),
+
+    itemCount:
+      items.length,
+
+    totalQuantity:
+      roundTwo_(
+        items.reduce(
+          function (
+            total,
+            item
+          ) {
+            return total +
+              item.quantity;
+          },
+          0
+        )
+      ),
+
+    totalAmount:
+      roundTwo_(
+        items.reduce(
+          function (
+            total,
+            item
+          ) {
+            return total +
+              item.amount;
+          },
+          0
+        )
+      ),
+
+    items:
+      items
+  };
+}
+
+
+/**
+ * Returns the end of a date.
+ */
+function endOfDay_(dateValue) {
+  const date =
+    new Date(
+      dateValue.getTime()
+    );
+
+  date.setHours(
+    23,
+    59,
+    59,
+    999
+  );
+
+  return date;
+}
+
+
+/**
+ * Returns inward summary.
+ */
+function getInwardSummary() {
+  return safeExecute_(function () {
+    requireAuthenticatedUser_();
+
+    const records =
+  getSheetObjects_(
+    getInwardSheetName_()
+  ).filter(function (record) {
+    return Boolean(
+      normalizeText_(
+        record['Inward No']
+      )
+    );
+  });
+
+    const inwardNumbers = {};
+    const vendors = {};
+    const projects = {};
+
+    const summary = {
+      totalTransactions: 0,
+      totalLines: records.length,
+      totalQuantity: 0,
+      totalAmount: 0,
+      freeQuantity: 0,
+      customizeQuantity: 0,
+      vendors: 0,
+      projects: 0
+    };
+
+    records.forEach(
+      function (record) {
+        const inwardNo =
+          normalizeUpper_(
+            record['Inward No']
+          );
+
+        if (inwardNo) {
+          inwardNumbers[
+            inwardNo
+          ] = true;
+        }
+
+        const vendor =
+          normalizeUpper_(
+            record['Vendor']
+          );
+
+        if (vendor) {
+          vendors[vendor] =
+            true;
+        }
+
+        const project =
+          normalizeUpper_(
+            record['Project']
+          );
+
+        if (project) {
+          projects[project] =
+            true;
+        }
+
+        const quantity =
+          toNumber_(
+            record['Qty'],
+            0
+          );
+
+        const amount =
+          toNumber_(
+            record['Amount'],
+            0
+          );
+
+        summary.totalQuantity +=
+          quantity;
+
+        summary.totalAmount +=
+          amount;
+
+        if (
+          normalizeUpper_(
+            record[
+              'Inventory Type'
+            ]
+          ) ===
+          INWARD_SERVICE_CONFIG
+            .INVENTORY_TYPE.FREE
+        ) {
+          summary.freeQuantity +=
+            quantity;
+        } else {
+          summary
+            .customizeQuantity +=
+            quantity;
+        }
+      }
+    );
+
+    summary.totalTransactions =
+      Object.keys(
+        inwardNumbers
+      ).length;
+
+    summary.vendors =
+      Object.keys(
+        vendors
+      ).length;
+
+    summary.projects =
+      Object.keys(
+        projects
+      ).length;
+
+    summary.totalQuantity =
+      roundTwo_(
+        summary.totalQuantity
+      );
+
+    summary.totalAmount =
+      roundTwo_(
+        summary.totalAmount
+      );
+
+    summary.freeQuantity =
+      roundTwo_(
+        summary.freeQuantity
+      );
+
+    summary.customizeQuantity =
+      roundTwo_(
+        summary
+          .customizeQuantity
+      );
+
+    return successResponse_(
+      'Inward summary loaded successfully.',
+      summary
+    );
+  }, 'Unable to load inward summary.');
+}
+
+
+/**
+ * Test: creates one Free Inventory inward.
+ *
+ * This adds 5 units to SKU000001.
+ */
+function testCreateFreeInward() {
+  const result =
+    createInward({
+      inventoryType:
+        'FREE',
+
+      vendor:
+        'Test Vendor',
+
+      projectId:
+        '',
+
+      items: [
+        {
+          skuId:
+            'SKU000001',
+
+          quantity:
+            5,
+
+          rate:
+            1250
+        }
+      ]
+    });
+
+  Logger.log(
+    JSON.stringify(
+      result,
+      null,
+      2
+    )
+  );
+
+  return result;
+}
+
+
+function testCreateCustomizeInward() {
+  const projects =
+    getSheetObjects_(
+      APP_CONFIG.SHEETS.PROJECT_MASTER
+    ).filter(function (record) {
+      return (
+        normalizeText_(
+          record['Project ID']
+        ) &&
+        normalizeUpper_(
+          record['Status']
+        ) === 'ACTIVE'
+      );
+    });
+
+  if (!projects.length) {
+    throw new Error(
+      'No ACTIVE project found in Project_Master.'
+    );
+  }
+
+  const skus =
+    getSheetObjects_(
+      APP_CONFIG.SHEETS.SKU_MASTER
+    ).filter(function (record) {
+      return (
+        normalizeText_(
+          record['SKU ID']
+        ) &&
+        normalizeUpper_(
+          record['Status']
+        ) === 'ACTIVE'
+      );
+    });
+
+  if (!skus.length) {
+    throw new Error(
+      'No ACTIVE SKU found in SKU_Master.'
+    );
+  }
+
+  const selectedProject =
+    projects[0];
+
+  const selectedSku =
+    skus[0];
+
+  const result =
+    createInward({
+      inventoryType:
+        'CUSTOMIZE',
+
+      vendor:
+        'Test Vendor',
+
+      vendorInvoiceNo:
+        'TEST-' + Date.now(),
+
+      projectId:
+        normalizeUpper_(
+          selectedProject['Project ID']
+        ),
+
+      remarks:
+        'Automatic customize inward test.',
+
+      items: [
+        {
+          skuId:
+            normalizeUpper_(
+              selectedSku['SKU ID']
+            ),
+
+          quantity:
+            3
+        }
+      ]
+    });
+
+  Logger.log(
+    JSON.stringify(
+      {
+        selectedProject:
+          selectedProject,
+
+        selectedSku:
+          selectedSku,
+
+        result:
+          result
+      },
+      null,
+      2
+    )
+  );
+
+  return result;
+}
